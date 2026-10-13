@@ -1,2695 +1,1884 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎮 マルチゲームアプリ</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090f">
+<title>🐺 WEREWOLF</title>
 <style>
-  /* ===== GLOBAL ===== */
-  :root {
-    --neon-blue: #00d4ff;
-    --neon-purple: #b44fff;
-    --neon-green: #00ff88;
-    --dark-bg: #0a0a1a;
-    --card-bg: #111128;
-  }
-  * { box-sizing: border-box; }
-  body {
-    background: var(--dark-bg);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh;
-    color: #e2e8f0;
-  }
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #1a1a2e; }
-  ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 3px; }
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root{
+  --bg:#08090f;
+  --bg2:#0d0f1c;
+  --panel:#111428;
+  --panel2:#181d36;
+  --line:#222744;
+  --line2:#2e3560;
+  --moon:#ece6d3;
+  --dim:#6e7494;
+  --dim2:#44496a;
+  --red:#e8445a;
+  --redbg:rgba(232,68,90,.14);
+  --vio:#8b7fd4;
+  --vio2:#b0a8f0;
+  --viobg:rgba(139,127,212,.13);
+  --gold:#d4a843;
+  --gold2:#f5cc5c;
+  --goldbg:rgba(212,168,67,.11);
+  --ok:#4dbf8a;
+  --ok2:#6edba8;
+  --okbg:rgba(77,191,138,.11);
+  --cyan:#3bbfd4;
+  --cyanbg:rgba(59,191,212,.11);
+  --neon-r:0 0 8px rgba(232,68,90,.9),0 0 24px rgba(232,68,90,.4),0 0 48px rgba(232,68,90,.15);
+  --neon-v:0 0 8px rgba(139,127,212,.9),0 0 24px rgba(139,127,212,.4),0 0 48px rgba(139,127,212,.15);
+  --neon-g:0 0 8px rgba(212,168,67,.9),0 0 24px rgba(212,168,67,.4),0 0 48px rgba(212,168,67,.15);
+  --neon-c:0 0 8px rgba(59,191,212,.9),0 0 24px rgba(59,191,212,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html{font-size:16px}
+body{
+  background:var(--bg);
+  color:var(--moon);
+  font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  line-height:1.6;
+  overflow-x:hidden;
+}
 
-  /* ===== HOME SCREEN ===== */
-  #home-screen {
-    background: radial-gradient(ellipse at 20% 20%, #1a0533 0%, #0a0a1a 50%, #001a2e 100%);
-  }
-  .game-card {
-    background: linear-gradient(135deg, #1a1a3e 0%, #111128 100%);
-    border: 1px solid rgba(180,79,255,0.25);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .game-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(180,79,255,0.05));
-    opacity: 0; transition: opacity 0.3s;
-  }
-  .game-card:hover::before { opacity: 1; }
-  .game-card:hover {
-    border-color: var(--neon-blue);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,212,255,0.2);
-  }
-  .game-card .emoji { font-size: 3rem; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
-  .badge-ai {
-    background: linear-gradient(90deg, #b44fff, #00d4ff);
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
-    padding: 2px 8px; border-radius: 999px; color: #fff;
-  }
-  .badge-solo {
-    background: linear-gradient(90deg, #00ff88, #00d4ff);
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
-    padding: 2px 8px; border-radius: 999px; color: #111;
-  }
+/* ============================================================
+   ANIMATED STAR FIELD
+   ============================================================ */
+body::before,body::after{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;z-index:0;
+}
+body::before{
+  background:
+    radial-gradient(1px 1px at  8% 12%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 78%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 38%  5%,rgba(255,255,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 48%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 67% 88%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(2px 2px at 81% 33%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 91% 61%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 14% 55%,rgba(200,180,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 44% 92%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 73% 18%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 96%  8%,rgba(255,220,180,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at  3% 95%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 58% 72%,rgba(180,220,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 29% 39%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 85% 84%,rgba(255,255,255,.5) 0%,transparent 100%);
+}
+body::after{
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 20%,rgba(80,40,140,.12) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 60% at 75% 80%,rgba(20,60,120,.1) 0%,transparent 70%);
+}
 
-  /* ===== GAME SCREEN ===== */
-  .game-screen { display: none; }
-  .game-screen.active { display: block; }
-  .rule-box {
-    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(180,79,255,0.08));
-    border: 1px solid rgba(0,212,255,0.2);
-    border-radius: 12px; padding: 12px 16px;
-    font-size: 0.82rem; color: #94a3b8;
-    line-height: 1.6;
-  }
-  .btn-home {
-    background: linear-gradient(135deg, #b44fff, #00d4ff);
-    color: #fff; font-weight: 700; border: none; cursor: pointer;
-    padding: 10px 24px; border-radius: 9999px;
-    transition: opacity 0.2s, transform 0.2s;
-    font-size: 0.9rem;
-  }
-  .btn-home:hover { opacity: 0.85; transform: scale(1.04); }
-  .btn-primary {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff; font-weight: 600; border: none; cursor: pointer;
-    padding: 10px 24px; border-radius: 8px;
-    transition: all 0.2s; font-size: 0.9rem;
-  }
-  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-  .btn-secondary {
-    background: rgba(255,255,255,0.08);
-    color: #cbd5e1; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);
-    cursor: pointer; padding: 10px 24px; border-radius: 8px;
-    transition: all 0.2s; font-size: 0.9rem;
-  }
-  .btn-secondary:hover { background: rgba(255,255,255,0.14); }
-  .score-panel {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px; padding: 10px 16px; text-align: center;
-  }
-  .score-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; }
-  .score-value { font-size: 1.5rem; font-weight: 800; color: var(--neon-blue); }
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+#app{
+  position:relative;z-index:1;
+  max-width:480px;margin:0 auto;
+  min-height:100vh;
+  padding:calc(env(safe-area-inset-top,0px)) 0 calc(env(safe-area-inset-bottom,0px));
+}
+.screen{
+  min-height:100vh;
+  padding:20px 18px 40px;
+  animation:fadeIn .32s ease;
+}
+.screen.night-screen{
+  background:linear-gradient(170deg,#030108 0%,#080320 40%,#03090f 100%);
+}
 
-  /* ===== TIC-TAC-TOE ===== */
-  .ttt-cell {
-    background: rgba(255,255,255,0.04);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 12px; font-size: 2.5rem; font-weight: 900;
-    cursor: pointer; transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center;
-    aspect-ratio: 1;
-  }
-  .ttt-cell:hover:not(.taken) { background: rgba(0,212,255,0.1); border-color: var(--neon-blue); }
-  .ttt-cell.x { color: #f472b6; text-shadow: 0 0 15px #f472b6; }
-  .ttt-cell.o { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-  .ttt-cell.win-cell { background: rgba(0,255,136,0.15); border-color: var(--neon-green); }
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn   {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slideUp  {from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes cardFlip {0%{transform:rotateY(80deg) scale(.85);opacity:0}100%{transform:rotateY(0) scale(1);opacity:1}}
+@keyframes voteIn   {from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pulse    {0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes glowLoop {0%,100%{filter:drop-shadow(0 0 10px rgba(212,168,67,.6))}
+                     50%{filter:drop-shadow(0 0 28px rgba(212,168,67,1))}}
+@keyframes borderPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,68,90,.0)}
+                        50%{box-shadow:0 0 0 6px rgba(232,68,90,.15)}}
+@keyframes floatUp  {0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+@keyframes msgIn    {from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes shimmer  {0%{background-position:-200% 0}100%{background-position:200% 0}}
 
-  /* ===== OTHELLO ===== */
-  .othello-cell {
-    background: #1a4a1a;
-    border: 1px solid #2d6a2d;
-    cursor: pointer; position: relative;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
-    aspect-ratio: 1;
-  }
-  .othello-cell:hover.legal { background: #255a25; }
-  .othello-cell .disc {
-    width: 80%; height: 80%; border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-  .disc.black { background: radial-gradient(circle at 35% 35%, #555, #111); }
-  .disc.white { background: radial-gradient(circle at 35% 35%, #fff, #ccc); }
-  .legal-dot::after {
-    content: ''; position: absolute;
-    width: 30%; height: 30%; background: rgba(0,255,136,0.5);
-    border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  }
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.serif{font-family:"Hiragino Mincho ProN","Noto Serif JP",Georgia,serif;font-weight:700;letter-spacing:.06em}
+h2{font-family:"Hiragino Mincho ProN","Noto Serif JP",serif;font-weight:700;font-size:1.4rem;margin:.3em 0 .2em}
+h3{font-size:.95rem;color:var(--dim);margin:.25em 0}
+.ng{color:var(--red)}
+.ok-c{color:var(--ok)}
+.gold-c{color:var(--gold)}
+.dim-c{color:var(--dim)}
 
-  /* ===== CONNECT FOUR ===== */
-  .c4-cell {
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
-    aspect-ratio: 1; transition: all 0.2s;
-  }
-  .c4-cell.p1 { background: radial-gradient(circle at 35% 35%, #fca5a5, #ef4444); box-shadow: 0 0 10px rgba(239,68,68,0.5); border-color: #ef4444; }
-  .c4-cell.p2 { background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b); box-shadow: 0 0 10px rgba(245,158,11,0.5); border-color: #f59e0b; }
-  .c4-cell.win { box-shadow: 0 0 20px #00ff88, inset 0 0 10px rgba(0,255,136,0.3); border-color: var(--neon-green) !important; }
-  .c4-col-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #94a3b8; border-radius: 6px; padding: 4px 0;
-    cursor: pointer; transition: all 0.2s; font-size: 1.1rem;
-    width: 100%;
-  }
-  .c4-col-btn:hover:not(:disabled) { background: rgba(0,212,255,0.15); color: var(--neon-blue); }
+/* ============================================================
+   LOGO
+   ============================================================ */
+.logo-wrap{text-align:center;padding:44px 0 28px}
+.logo-moon{
+  display:block;font-size:4.2rem;
+  animation:glowLoop 3.5s ease-in-out infinite,floatUp 4s ease-in-out infinite;
+}
+.logo-title{
+  font-family:"Hiragino Mincho ProN","Noto Serif JP",serif;
+  font-size:2.8rem;font-weight:900;letter-spacing:.25em;
+  background:linear-gradient(135deg,#c8a8f0 0%,#ece6d3 35%,#d4a843 68%,#e8445a 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 16px rgba(139,127,212,.5));
+  margin-top:4px;
+}
+.logo-sub{color:var(--dim);font-size:.82rem;letter-spacing:.22em;margin-top:6px}
+.logo-line{
+  width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--vio),transparent);
+  margin:14px auto 0;
+}
 
-  /* ===== DOTS & BOXES ===== */
-  #dnb-svg line { stroke: #334155; stroke-width: 4; cursor: pointer; transition: stroke 0.2s; stroke-linecap: round; }
-  #dnb-svg line:hover.available { stroke: #00d4ff; stroke-width: 5; }
-  #dnb-svg line.p1-line { stroke: #f472b6; }
-  #dnb-svg line.p2-line { stroke: var(--neon-blue); }
-  #dnb-svg rect.p1-box { fill: rgba(244,114,182,0.25); }
-  #dnb-svg rect.p2-box { fill: rgba(0,212,255,0.25); }
-  #dnb-svg circle { fill: #475569; }
+/* ============================================================
+   SECTION LABEL
+   ============================================================ */
+.sec-label{
+  font-size:.72rem;font-weight:700;letter-spacing:.15em;
+  color:var(--dim2);text-transform:uppercase;
+  margin:18px 0 6px;display:flex;align-items:center;gap:8px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--line)}
 
-  /* ===== 2048 ===== */
-  #g2048-board {
-    background: #1a1a3e;
-    border-radius: 12px; padding: 8px;
-    display: grid; grid-template-columns: repeat(4,1fr);
-    gap: 8px;
-  }
-  .t2048 {
-    border-radius: 8px; font-weight: 900;
-    display: flex; align-items: center; justify-content: center;
-    aspect-ratio: 1; font-size: 1.4rem;
-    transition: all 0.1s ease;
-    user-select: none;
-  }
-  .t2048[data-v="0"] { background: rgba(255,255,255,0.04); color: transparent; }
-  .t2048[data-v="2"] { background: #2d3748; color: #e2e8f0; }
-  .t2048[data-v="4"] { background: #3d4a5e; color: #e2e8f0; }
-  .t2048[data-v="8"] { background: #c05621; color: #fff; }
-  .t2048[data-v="16"] { background: #c53030; color: #fff; }
-  .t2048[data-v="32"] { background: #9c2a9c; color: #fff; }
-  .t2048[data-v="64"] { background: #6b21a8; color: #fff; }
-  .t2048[data-v="128"] { background: #1d4ed8; color: #fff; font-size: 1.1rem; }
-  .t2048[data-v="256"] { background: #0369a1; color: #fff; font-size: 1.1rem; }
-  .t2048[data-v="512"] { background: #047857; color: #fff; font-size: 1.1rem; }
-  .t2048[data-v="1024"] { background: #065f46; color: #fbbf24; font-size: 0.95rem; }
-  .t2048[data-v="2048"] { background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: 0.95rem; box-shadow: 0 0 20px rgba(245,158,11,0.7); }
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;margin:10px 0;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.025) 0%,transparent 55%);
+  pointer-events:none;border-radius:inherit;
+}
+.card.vio {border-color:rgba(139,127,212,.5);background:linear-gradient(135deg,rgba(139,127,212,.08),var(--panel))}
+.card.red {border-color:rgba(232,68,90,.5);background:linear-gradient(135deg,rgba(232,68,90,.08),var(--panel))}
+.card.gold{border-color:rgba(212,168,67,.5);background:linear-gradient(135deg,rgba(212,168,67,.08),var(--panel))}
+.card.ok  {border-color:rgba(77,191,138,.5);background:linear-gradient(135deg,rgba(77,191,138,.08),var(--panel))}
+.card.cyan{border-color:rgba(59,191,212,.5);background:linear-gradient(135deg,rgba(59,191,212,.08),var(--panel))}
 
-  /* ===== TETRIS ===== */
-  #tetris-canvas { border: 2px solid rgba(0,212,255,0.3); border-radius: 8px; display: block; }
-  #tetris-next-canvas { border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: block; }
-  #tetris-hold-canvas { border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: block; }
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:8px}
+.row:last-child{border-bottom:none}
+.divider{height:1px;background:var(--line);margin:14px 0}
 
-  /* ===== MINESWEEPER ===== */
-  .ms-cell {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px; font-size: 0.75rem; font-weight: 700;
-    cursor: pointer; transition: all 0.15s;
-    display: flex; align-items: center; justify-content: center;
-    aspect-ratio: 1; user-select: none;
-  }
-  .ms-cell:hover:not(.revealed):not(.flagged) { background: rgba(255,255,255,0.15); }
-  .ms-cell.revealed { background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.05); cursor: default; }
-  .ms-cell.flagged { background: rgba(245,158,11,0.2); border-color: #f59e0b; }
-  .ms-cell.mine-hit { background: rgba(239,68,68,0.4); border-color: #ef4444; }
-  .ms-1{color:#60a5fa}.ms-2{color:#4ade80}.ms-3{color:#f87171}.ms-4{color:#818cf8}
-  .ms-5{color:#fb923c}.ms-6{color:#22d3ee}.ms-7{color:#f9a8d4}.ms-8{color:#94a3b8}
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  display:block;width:100%;
+  padding:15px;margin:10px 0 0;
+  border:0;border-radius:13px;
+  font-size:1.02rem;font-weight:700;
+  font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .13s,box-shadow .2s,opacity .15s;
+  color:#fff;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,transparent 55%);
+  pointer-events:none;
+}
+.btn:active{transform:scale(.965)}
+.btn:disabled{background:var(--line)!important;color:var(--dim)!important;box-shadow:none!important;cursor:default}
 
-  /* ===== SNAKE ===== */
-  #snake-canvas { border: 2px solid rgba(0,255,136,0.3); border-radius: 8px; display: block; }
+.btn-red {background:linear-gradient(135deg,#c0293e,var(--red));box-shadow:0 4px 18px rgba(232,68,90,.35)}
+.btn-red:not(:disabled):hover{box-shadow:var(--neon-r)}
+.btn-vio {background:linear-gradient(135deg,#6c5fc4,var(--vio));box-shadow:0 4px 18px rgba(139,127,212,.35)}
+.btn-vio:not(:disabled):hover{box-shadow:var(--neon-v)}
+.btn-gold{background:linear-gradient(135deg,#a07018,var(--gold));box-shadow:0 4px 18px rgba(212,168,67,.35);color:#160e00}
+.btn-gold:not(:disabled):hover{box-shadow:var(--neon-g)}
+.btn-ok  {background:linear-gradient(135deg,#2d9966,var(--ok));box-shadow:0 4px 18px rgba(77,191,138,.3);color:#001a0e}
+.btn-cyan{background:linear-gradient(135deg,#1a8fa0,var(--cyan));box-shadow:0 4px 18px rgba(59,191,212,.3)}
+.btn-ghost{background:var(--panel2);border:1px solid var(--line2);color:var(--moon);box-shadow:none}
+.btn-ghost:hover{border-color:var(--vio)}
+.btn-sm{padding:9px 16px;font-size:.88rem;margin:0}
 
-  /* ===== BREAKOUT ===== */
-  #breakout-canvas { border: 2px solid rgba(180,79,255,0.3); border-radius: 8px; display: block; }
+/* ============================================================
+   HOME BUTTONS
+   ============================================================ */
+.home-btn{
+  display:flex;align-items:center;gap:16px;
+  width:100%;padding:18px 20px;margin:10px 0;
+  border-radius:18px;
+  background:var(--panel);color:var(--moon);
+  font-size:1rem;font-weight:700;
+  font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  cursor:pointer;text-align:left;
+  transition:border-color .2s,background .2s,box-shadow .2s,transform .13s;
+  position:relative;overflow:hidden;
+  border:1px solid var(--line2);
+}
+.home-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 55%);
+  pointer-events:none;
+}
+.home-btn:active{transform:scale(.975)}
+.home-btn.hb-create{border-color:rgba(232,68,90,.3)}
+.home-btn.hb-create:hover{border-color:var(--red);box-shadow:0 0 24px rgba(232,68,90,.18),inset 0 0 40px rgba(232,68,90,.04)}
+.home-btn.hb-join  {border-color:rgba(139,127,212,.3)}
+.home-btn.hb-join:hover  {border-color:var(--vio);box-shadow:0 0 24px rgba(139,127,212,.18),inset 0 0 40px rgba(139,127,212,.04)}
+.home-btn.hb-solo  {border-color:rgba(212,168,67,.3)}
+.home-btn.hb-solo:hover  {border-color:var(--gold);box-shadow:0 0 24px rgba(212,168,67,.18),inset 0 0 40px rgba(212,168,67,.04)}
+.hbi{
+  font-size:1.9rem;width:50px;height:50px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:13px;flex-shrink:0;
+}
+.hb-create .hbi{background:var(--redbg);border:1px solid rgba(232,68,90,.25)}
+.hb-join   .hbi{background:var(--viobg);border:1px solid rgba(139,127,212,.25)}
+.hb-solo   .hbi{background:var(--goldbg);border:1px solid rgba(212,168,67,.25)}
+.hbt b  {display:block;font-size:1.08rem;margin-bottom:2px}
+.hbt small{color:var(--dim);font-size:.8rem;font-weight:400}
+.hba{margin-left:auto;color:var(--dim);font-size:1.3rem;flex-shrink:0}
 
-  /* ===== SUDOKU ===== */
-  .sdk-cell {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    text-align: center; font-size: 1.1rem; font-weight: 700;
-    color: #93c5fd; cursor: pointer; caret-color: transparent;
-    transition: all 0.15s; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    aspect-ratio: 1; user-select: none;
-  }
-  .sdk-cell:focus { outline: none; background: rgba(99,102,241,0.2); border-color: #6366f1; }
-  .sdk-cell.given { color: #e2e8f0; cursor: default; background: rgba(255,255,255,0.07); }
-  .sdk-cell.error { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #f87171; }
-  .sdk-cell.selected { background: rgba(99,102,241,0.2); border-color: #818cf8; }
-  .sdk-cell.highlight { background: rgba(99,102,241,0.07); }
-  /* 3x3 box borders */
-  .sdk-cell.box-right { border-right: 2px solid rgba(255,255,255,0.25); }
-  .sdk-cell.box-bottom { border-bottom: 2px solid rgba(255,255,255,0.25); }
-  .sdk-board { border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; overflow: hidden; }
+/* ============================================================
+   STEP INDICATOR
+   ============================================================ */
+.step-bar{
+  display:flex;align-items:center;gap:0;
+  margin:0 0 20px;
+}
+.step-item{
+  display:flex;align-items:center;flex:1;
+}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;
+  background:var(--panel2);border:2px solid var(--line2);color:var(--dim);
+  flex-shrink:0;transition:all .2s;
+}
+.step-dot.done {background:var(--vio);border-color:var(--vio);color:#fff}
+.step-dot.active{background:var(--vio);border-color:var(--vio2);color:#fff;box-shadow:0 0 10px rgba(139,127,212,.6)}
+.step-line{flex:1;height:2px;background:var(--line2);transition:background .3s}
+.step-line.done{background:var(--vio)}
+.step-label{
+  font-size:.7rem;color:var(--dim);margin-top:4px;text-align:center;
+  position:absolute; /* reset below */
+}
+.step-wrap{
+  display:flex;flex-direction:column;align-items:center;flex:1;
+  position:relative;
+}
+.step-wrap:first-child .step-line-l{display:none}
+.step-wrap:last-child .step-line-r{display:none}
 
-  /* ===== ANIMATIONS ===== */
-  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes pulse-neon { 0%,100%{box-shadow:0 0 10px rgba(0,212,255,0.3)} 50%{box-shadow:0 0 25px rgba(0,212,255,0.7)} }
-  @keyframes spin-in { from{transform:rotate(-10deg) scale(0.9);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
-  .fade-in { animation: fadeIn 0.35s ease forwards; }
-  .pulse-neon { animation: pulse-neon 2s infinite; }
-  .header-title {
-    background: linear-gradient(135deg, #00d4ff, #b44fff, #00ff88);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .neon-border { border: 1px solid rgba(0,212,255,0.4); box-shadow: 0 0 15px rgba(0,212,255,0.1); }
+/* ============================================================
+   MODE SELECT CARDS
+   ============================================================ */
+.mode-card{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  flex:1;padding:20px 12px;
+  border-radius:16px;border:2px solid var(--line2);
+  background:var(--panel);cursor:pointer;
+  transition:all .2s;text-align:center;
+}
+.mode-card:hover{transform:translateY(-2px)}
+.mode-card.selected.online-sel{border-color:var(--cyan);background:var(--cyanbg);box-shadow:var(--neon-c)}
+.mode-card.selected.offline-sel{border-color:var(--vio);background:var(--viobg);box-shadow:var(--neon-v)}
+.mode-card-icon{font-size:2.4rem;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
+.mode-card b{font-size:.95rem}
+.mode-card small{color:var(--dim);font-size:.76rem;line-height:1.4}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+input,select,textarea{
+  width:100%;padding:13px 14px;
+  border-radius:12px;border:1px solid var(--line2);
+  background:var(--bg2);color:var(--moon);
+  font-size:1rem;
+  font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  transition:border-color .2s,box-shadow .2s;
+  outline:none;margin:4px 0;
+}
+input:focus,select:focus{border-color:var(--vio);box-shadow:0 0 0 3px rgba(139,127,212,.18)}
+input::placeholder{color:var(--dim2)}
+.code-input{
+  font-size:2.6rem;font-weight:900;letter-spacing:.3em;text-align:center;
+  padding:18px;border-radius:14px;border:2px solid var(--line2);
+  background:var(--bg2);color:var(--vio2);
+  font-family:"Hiragino Mincho ProN",monospace;
+  transition:border-color .2s,box-shadow .2s;
+}
+.code-input:focus{border-color:var(--vio);box-shadow:0 0 0 4px rgba(139,127,212,.2)}
+
+/* ============================================================
+   STEPPERS
+   ============================================================ */
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper b{min-width:2.2em;text-align:center;font-size:1.3rem}
+.st-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--line2);background:var(--panel2);
+  color:var(--moon);font-size:1.1rem;cursor:pointer;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+}
+.st-btn:hover{border-color:var(--vio);background:var(--viobg);box-shadow:0 0 8px rgba(139,127,212,.3)}
+
+/* ============================================================
+   TAGS
+   ============================================================ */
+.tag{
+  display:inline-block;padding:3px 11px;
+  border-radius:99px;border:1px solid var(--line2);
+  font-size:.76rem;color:var(--dim);background:var(--panel);
+}
+.tag.red {border-color:var(--red);color:var(--red);background:var(--redbg)}
+.tag.vio {border-color:var(--vio);color:var(--vio2);background:var(--viobg)}
+.tag.gold{border-color:var(--gold);color:var(--gold);background:var(--goldbg)}
+.tag.ok  {border-color:var(--ok);color:var(--ok);background:var(--okbg)}
+.tag.cyan{border-color:var(--cyan);color:var(--cyan);background:var(--cyanbg)}
+
+/* ============================================================
+   ROOM CODE DISPLAY
+   ============================================================ */
+.room-code-big{
+  font-family:"Hiragino Mincho ProN",monospace;
+  font-size:3.4rem;font-weight:900;letter-spacing:.3em;text-align:center;
+  color:var(--vio2);text-shadow:var(--neon-v);
+  padding:18px 0;
+  background:linear-gradient(135deg,rgba(139,127,212,.1),rgba(139,127,212,.04));
+  border:1px solid rgba(139,127,212,.4);border-radius:16px;margin:10px 0;
+  cursor:pointer;transition:box-shadow .2s;
+}
+.room-code-big:hover{box-shadow:var(--neon-v)}
+.qr-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:20px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:10px 0;
+}
+.qr-wrap img{border-radius:10px;background:#fff;padding:8px;box-shadow:0 0 20px rgba(0,0,0,.5)}
+
+/* ============================================================
+   TOGGLE SWITCH
+   ============================================================ */
+.role-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--line);
+}
+.role-toggle:last-child{border-bottom:none}
+.toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sl{
+  position:absolute;inset:0;background:var(--line2);border-radius:24px;
+  cursor:pointer;transition:background .2s;
+}
+.toggle-sl::before{
+  content:'';position:absolute;left:3px;top:3px;
+  width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;
+}
+.toggle-sw input:checked+.toggle-sl{background:var(--vio)}
+.toggle-sw input:checked+.toggle-sl::before{transform:translateX(20px)}
+
+/* ============================================================
+   CHIPS / ALIVE LIST
+   ============================================================ */
+.alive-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{
+  padding:4px 12px;border-radius:99px;
+  border:1px solid var(--line2);background:var(--panel2);
+  font-size:.82rem;color:var(--moon);
+}
+.chip.dead{background:transparent;color:var(--dim2);text-decoration:line-through;border-style:dashed;opacity:.5}
+
+/* ============================================================
+   CHAT / LOG
+   ============================================================ */
+.chat-box,.log-box{
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:5px;
+  padding:6px 0;scroll-behavior:smooth;
+}
+.chat-box{max-height:200px}
+.log-box {max-height:290px}
+.chat-box::-webkit-scrollbar,.log-box::-webkit-scrollbar{width:3px}
+.chat-box::-webkit-scrollbar-thumb,.log-box::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
+
+.msg{
+  background:var(--panel2);
+  border-left:3px solid var(--vio);
+  border-radius:0 10px 10px 0;
+  padding:7px 12px;font-size:.92rem;
+  animation:msgIn .22s ease;
+}
+.msg.wolf-msg{border-left-color:var(--red);background:rgba(232,68,90,.06)}
+.msg.sys{border-left-color:var(--gold);background:var(--goldbg);font-style:italic}
+.msg.me{border-left-color:var(--cyan);background:rgba(59,191,212,.07)}
+.msg small{display:block;color:var(--dim);font-size:.7rem;margin-bottom:1px}
+.send-row{display:flex;gap:8px;margin-top:8px}
+.send-row input{flex:1}
+.send-row button{
+  padding:0 18px;border-radius:12px;border:0;
+  background:var(--vio);color:#fff;font-weight:700;
+  cursor:pointer;font-size:.95rem;flex-shrink:0;
+  transition:box-shadow .2s;
+}
+.send-row button:hover{box-shadow:var(--neon-v)}
+
+/* ============================================================
+   DAY HEADER / BADGE
+   ============================================================ */
+.day-header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;margin-bottom:10px;
+  border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.day-badge{
+  font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:99px;
+  background:var(--goldbg);border:1px solid rgba(212,168,67,.4);color:var(--gold);
+}
+
+/* ============================================================
+   TIMER RING
+   ============================================================ */
+.timer-ring{position:relative;width:54px;height:54px}
+.timer-ring svg{transform:rotate(-90deg)}
+.tr-bg{fill:none;stroke:var(--line2);stroke-width:5}
+.tr-arc{fill:none;stroke:var(--vio);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .95s linear,stroke .4s}
+.tr-arc.low{stroke:var(--red);animation:pulse .8s infinite}
+.timer-text{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Hiragino Mincho ProN",serif;font-size:.95rem;font-weight:700;
+}
+.timer-text.low{color:var(--red)}
+
+/* ============================================================
+   COMPLETE BUTTON (議論完了)
+   ============================================================ */
+.done-btn-wrap{
+  display:flex;flex-direction:column;align-items:stretch;gap:6px;
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:14px;padding:14px;margin-top:12px;
+}
+.done-count{
+  text-align:center;font-size:.82rem;color:var(--dim);margin-bottom:4px;
+}
+.done-count b{color:var(--ok)}
+
+/* ============================================================
+   PLAYER LIST / PICK
+   ============================================================ */
+.player-list{display:grid;gap:8px;margin:10px 0}
+.player-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);cursor:pointer;
+  transition:border-color .15s,background .15s,transform .1s,box-shadow .15s;
+}
+.player-item:hover{border-color:var(--line2);background:var(--panel2)}
+.player-item.on{border-color:var(--red);background:var(--redbg);transform:scale(1.01);box-shadow:0 0 12px rgba(232,68,90,.2)}
+.player-item.on.vio-sel{border-color:var(--vio);background:var(--viobg);box-shadow:0 0 12px rgba(139,127,212,.2)}
+.player-avatar{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;background:var(--panel2);border:1px solid var(--line2);flex-shrink:0;
+}
+.player-name{font-weight:600;font-size:.95rem}
+
+/* ============================================================
+   VOTE BAR
+   ============================================================ */
+.vote-result{display:grid;gap:8px;margin:10px 0}
+.vote-row{display:flex;align-items:center;gap:10px}
+.vote-name{min-width:76px;font-size:.88rem;font-weight:600}
+.vote-bar-wrap{flex:1;height:20px;background:var(--panel2);border-radius:99px;overflow:hidden}
+.vote-bar{height:100%;border-radius:99px;transform-origin:left;animation:voteIn .8s cubic-bezier(.15,1.4,.4,1)}
+.vote-count{min-width:22px;text-align:right;font-size:.88rem;color:var(--dim)}
+
+/* ============================================================
+   ROLE CARD
+   ============================================================ */
+.role-card{
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 20px;border-radius:24px;border:2px solid var(--line2);
+  background:var(--panel);margin:14px 0;
+  animation:cardFlip .5s cubic-bezier(.2,.8,.3,1.1);
+  position:relative;overflow:hidden;
+}
+.role-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.07) 0%,transparent 65%);
+  pointer-events:none;
+}
+.role-card.wolf  {border-color:rgba(232,68,90,.6);background:linear-gradient(160deg,#1a0608,#111428)}
+.role-card.spy   {border-color:rgba(139,127,212,.6);background:linear-gradient(160deg,#0c0918,#111428)}
+.role-card.seer  {border-color:rgba(212,168,67,.6);background:linear-gradient(160deg,#161000,#111428)}
+.role-card.knight{border-color:rgba(77,191,138,.6);background:linear-gradient(160deg,#001409,#111428)}
+.role-card.citizen{border-color:var(--line2)}
+.rc-icon{font-size:4.6rem;margin-bottom:12px;filter:drop-shadow(0 0 14px currentColor)}
+.rc-name{font-size:2rem;font-weight:900;font-family:"Hiragino Mincho ProN",serif;margin-bottom:6px}
+.role-card.wolf .rc-name{color:var(--red);text-shadow:var(--neon-r)}
+.role-card.spy  .rc-name{color:var(--vio2);text-shadow:var(--neon-v)}
+.role-card.seer .rc-name{color:var(--gold2);text-shadow:var(--neon-g)}
+.role-card.knight .rc-name{color:var(--ok2)}
+.role-card.citizen .rc-name{color:var(--moon)}
+.rc-desc{color:var(--dim);font-size:.88rem;text-align:center;max-width:280px;line-height:1.6}
+
+/* ============================================================
+   NIGHT TITLE
+   ============================================================ */
+.night-title{
+  font-size:2.1rem;text-align:center;
+  color:var(--vio2);text-shadow:var(--neon-v);margin:10px 0;
+  font-family:"Hiragino Mincho ProN",serif;
+}
+.big-emoji{
+  font-size:4.8rem;margin:8px 0;
+  filter:drop-shadow(0 0 18px rgba(255,255,255,.25));
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+.result-big{
+  font-size:3.2rem;font-weight:900;
+  font-family:"Hiragino Mincho ProN",serif;margin:10px 0;
+}
+.result-big.win {color:var(--ok2);text-shadow:0 0 20px rgba(77,191,138,.6),0 0 40px rgba(77,191,138,.3)}
+.result-big.lose{color:var(--red);text-shadow:var(--neon-r);animation:pulse 2s infinite}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.ptable{width:100%;border-collapse:collapse;margin:6px 0}
+.ptable td{padding:8px 6px;border-bottom:1px solid var(--line);font-size:.88rem}
+.ptable td:first-child{color:var(--dim);font-size:.78rem;width:40px}
+
+/* ============================================================
+   CENTER LAYOUT
+   ============================================================ */
+.center{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:8px;padding:20px;min-height:65vh;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast{
+  position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%) translateY(80px);
+  background:rgba(20,22,44,.95);border:1px solid var(--line2);
+  color:var(--moon);font-size:.88rem;
+  padding:10px 22px;border-radius:99px;
+  box-shadow:0 4px 28px rgba(0,0,0,.6);
+  transition:transform .28s cubic-bezier(.2,1.5,.4,1),opacity .25s;
+  opacity:0;pointer-events:none;z-index:999;white-space:nowrap;
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* scrollbar global */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
 </style>
 </head>
 <body>
+<div id="app"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ============================================================
+   WEREWOLF v3 — Single HTML
+   ============================================================ */
+const app = document.getElementById('app');
+const e  = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R  = h => { app.innerHTML = h; window.scrollTo(0,0); };
+const rand = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => {
+  a=[...a];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+};
+const pad = n => String(n).padStart(2,'0');
+const qs  = s => document.querySelector(s);
+const qsa = s => [...document.querySelectorAll(s)];
 
-<!-- ===== HOME SCREEN ===== -->
-<div id="home-screen" class="min-h-screen">
-  <div class="max-w-6xl mx-auto px-4 py-10">
-    <div class="text-center mb-12 fade-in">
-      <div class="text-6xl mb-4">🎮</div>
-      <h1 class="text-4xl md:text-5xl font-black mb-3 header-title">マルチゲームアプリ</h1>
-      <p class="text-slate-400 text-lg">10種類のゲームが1アプリで楽しめる</p>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      <!-- AI Games -->
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('ttt')">
-        <div class="emoji mb-3">⭕</div>
-        <h3 class="font-bold text-sm mb-1">三目並べ</h3>
-        <p class="text-xs text-slate-500 mb-2">Tic-Tac-Toe</p>
-        <span class="badge-ai">最強AI</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('othello')" style="animation-delay:.05s">
-        <div class="emoji mb-3">⚫</div>
-        <h3 class="font-bold text-sm mb-1">オセロ</h3>
-        <p class="text-xs text-slate-500 mb-2">Reversi</p>
-        <span class="badge-ai">最強AI</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('c4')" style="animation-delay:.1s">
-        <div class="emoji mb-3">🔴</div>
-        <h3 class="font-bold text-sm mb-1">四目並べ</h3>
-        <p class="text-xs text-slate-500 mb-2">Connect Four</p>
-        <span class="badge-ai">最強AI</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('dnb')" style="animation-delay:.15s">
-        <div class="emoji mb-3">📦</div>
-        <h3 class="font-bold text-sm mb-1">ドット&ボックス</h3>
-        <p class="text-xs text-slate-500 mb-2">Dots & Boxes</p>
-        <span class="badge-ai">強AI</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('g2048')" style="animation-delay:.2s">
-        <div class="emoji mb-3">🟦</div>
-        <h3 class="font-bold text-sm mb-1">2048</h3>
-        <p class="text-xs text-slate-500 mb-2">Puzzle</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('tetris')" style="animation-delay:.25s">
-        <div class="emoji mb-3">🟪</div>
-        <h3 class="font-bold text-sm mb-1">テトリス</h3>
-        <p class="text-xs text-slate-500 mb-2">Tetris</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('mine')" style="animation-delay:.3s">
-        <div class="emoji mb-3">💣</div>
-        <h3 class="font-bold text-sm mb-1">マインスイーパー</h3>
-        <p class="text-xs text-slate-500 mb-2">Minesweeper</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('snake')" style="animation-delay:.35s">
-        <div class="emoji mb-3">🐍</div>
-        <h3 class="font-bold text-sm mb-1">スネーク</h3>
-        <p class="text-xs text-slate-500 mb-2">Snake</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('breakout')" style="animation-delay:.4s">
-        <div class="emoji mb-3">🧱</div>
-        <h3 class="font-bold text-sm mb-1">ブロック崩し</h3>
-        <p class="text-xs text-slate-500 mb-2">Breakout</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-      <div class="game-card rounded-2xl p-5 fade-in" onclick="showGame('sudoku')" style="animation-delay:.45s">
-        <div class="emoji mb-3">🔢</div>
-        <h3 class="font-bold text-sm mb-1">数独</h3>
-        <p class="text-xs text-slate-500 mb-2">Sudoku</p>
-        <span class="badge-solo">ソロ</span>
-      </div>
-    </div>
-    <div class="text-center mt-10 text-slate-600 text-xs">
-      スコアはLocalStorageに自動保存されます
-    </div>
-  </div>
-</div>
+function toast(msg,ms=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+function copyText(txt){
+  navigator.clipboard?.writeText(txt).then(()=>toast('📋 コピーしました'));
+}
 
+/* ============================================================  CONSTANTS */
+const RN = {citizen:'市民',wolf:'人狼',spy:'スパイ',seer:'占い師',knight:'騎士'};
+const RI = {citizen:'🏠',wolf:'🐺',spy:'🕵️',seer:'🔮',knight:'🛡️'};
+const RD = {
+  citizen:'特殊な力はありません。議論と推理で人狼を見つけ出しましょう。',
+  wolf:'毎晩1人を襲撃します。スパイと夜に密談できます。',
+  spy:'人狼が誰かを知っています。夜は人狼と密談できます。人狼陣営として勝利を目指します。',
+  seer:'毎晩1人を占い、人狼かどうかを知ることができます。',
+  knight:'毎晩1人を人狼の襲撃から守ります（自分以外）。',
+};
+const RCOL = {wolf:'wolf',spy:'spy',seer:'seer',knight:'knight',citizen:'citizen'};
+const BOT_NAMES = ['アキラ','ユウキ','ハルカ','ミツキ','リオン','サクラ','ケンジ','ナナミ','タクミ','アオイ'];
+const AVATARS   = ['😀','😎','🧐','🤔','😶','🥸','🤓','🧑','👤','🫥'];
 
-<!-- ===== GAME 1: TIC-TAC-TOE ===== -->
-<div id="game-ttt" class="game-screen min-h-screen">
-  <div class="max-w-lg mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">三目並べ</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>3×3のマス目にXとOを交互に置き、縦・横・斜めに3つ並べた方が勝ち。あなたは <strong style="color:#f472b6">X</strong>、AIは <strong style="color:#00d4ff">O</strong>。AIはミニマックス法で最善手のみを打つため、絶対に勝てません。引き分けを目指しましょう！
-    </div>
-    <div class="flex gap-4 mb-6 justify-center flex-wrap">
-      <div class="score-panel min-w-24"><div class="score-label">あなた</div><div class="score-value" id="ttt-score-p">0</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">引き分け</div><div class="score-value" id="ttt-score-d">0</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">AI</div><div class="score-value" id="ttt-score-a">0</div></div>
-    </div>
-    <div id="ttt-status" class="text-center text-slate-300 mb-4 font-semibold text-lg min-h-7"></div>
-    <div id="ttt-board" class="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-6">
-    </div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" onclick="tttNewGame()">🔄 新しいゲーム</button>
-      <button class="btn-secondary" onclick="tttResetScore()">スコアリセット</button>
-    </div>
-  </div>
-</div>
+/* ============================================================  STATE */
+let S = {
+  mode:'home',            // home | solo | room | join
+  roomType:'offline',     // offline | online
+  humans:3, bots:2,
+  names:[],
+  roles:{seer:true,knight:false},
+};
+let G = null;
 
+/* ============================================================
+   HOME
+   ============================================================ */
+function home(){
+  S.mode='home';
+  const params = new URLSearchParams(location.search);
+  const rp = params.get('room');
+  if(rp){ history.replaceState({},'',location.pathname); setTimeout(()=>joinRoomAuto(rp),100); return; }
 
-<!-- ===== GAME 2: OTHELLO ===== -->
-<div id="game-othello" class="game-screen min-h-screen">
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">オセロ</h2>
+  R(`<div class="screen">
+    <div class="logo-wrap">
+      <span class="logo-moon">🌕</span>
+      <div class="logo-title serif">WEREWOLF</div>
+      <div class="logo-sub">深夜の推理ゲーム</div>
+      <div class="logo-line"></div>
     </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>8×8のボードで黒と白の石を交互に置き、相手の石を挟んでひっくり返す。最終的に石が多い方の勝ち。あなたは <strong>⚫黒</strong>、AIは <strong>⚪白</strong>。緑の点が置ける場所です。AIはアルファベータ法＋評価関数で強力に先読みします。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-24"><div class="score-label">⚫ あなた</div><div class="score-value" id="oth-black">2</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">⚪ AI</div><div class="score-value" id="oth-white">2</div></div>
-      <div class="score-panel min-w-36"><div class="score-label">勝敗</div><div class="score-value text-sm" id="oth-wl">0W 0L 0D</div></div>
-    </div>
-    <div id="oth-status" class="text-center text-slate-300 mb-3 font-semibold text-lg min-h-7"></div>
-    <div id="oth-board" class="mx-auto mb-4" style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-width:360px;background:#0d3b0d;padding:4px;border-radius:8px;border:2px solid #1a5c1a;"></div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" onclick="othNewGame()">🔄 新しいゲーム</button>
-    </div>
-  </div>
-</div>
 
-<!-- ===== GAME 3: CONNECT FOUR ===== -->
-<div id="game-c4" class="game-screen min-h-screen">
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">四目並べ</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>7×6のボードに上から駒を落とし、縦・横・斜めに4つ並べた方が勝ち。あなたは <strong style="color:#ef4444">🔴赤</strong>、AIは <strong style="color:#f59e0b">🟡黄</strong>。列番号ボタンをクリックして駒を落とします。AIはアルファベータ法で数手先を読みます。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-24"><div class="score-label">🔴 あなた</div><div class="score-value" id="c4-score-p">0</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">引き分け</div><div class="score-value" id="c4-score-d">0</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">🟡 AI</div><div class="score-value" id="c4-score-a">0</div></div>
-    </div>
-    <div id="c4-status" class="text-center text-slate-300 mb-3 font-semibold text-lg min-h-7"></div>
-    <div id="c4-col-btns" class="grid gap-1 mx-auto mb-2" style="max-width:380px;grid-template-columns:repeat(7,1fr)"></div>
-    <div id="c4-board" class="mx-auto" style="max-width:380px;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:#1e3a5f;padding:8px;border-radius:12px;border:2px solid rgba(0,212,255,0.2)"></div>
-    <div class="flex gap-3 justify-center flex-wrap mt-4">
-      <button class="btn-primary" onclick="c4NewGame()">🔄 新しいゲーム</button>
-    </div>
-  </div>
-</div>
+    <button class="home-btn hb-create" onclick="roomCreate()">
+      <span class="hbi">🏠</span>
+      <span class="hbt"><b>ルームを作る</b><small>オンライン / オフライン対談を選択して部屋を作成</small></span>
+      <span class="hba">›</span>
+    </button>
+    <button class="home-btn hb-join" onclick="joinScreen()">
+      <span class="hbi">🚪</span>
+      <span class="hbt"><b>参加する</b><small>5桁コードまたはQRで入室</small></span>
+      <span class="hba">›</span>
+    </button>
+    <button class="home-btn hb-solo" onclick="soloSetup()">
+      <span class="hbi">🤖</span>
+      <span class="hbt"><b>一人でやる</b><small>強化AI Botと対戦するソロモード</small></span>
+      <span class="hba">›</span>
+    </button>
 
+    <div style="text-align:center;margin-top:36px">
+      <span style="color:var(--dim2);font-size:.74rem">v3.0 — フロントエンドのみで動作</span>
+    </div>
+  </div>`);
+}
 
-<!-- ===== GAME 4: DOTS & BOXES ===== -->
-<div id="game-dnb" class="game-screen min-h-screen">
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">ドット＆ボックス</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>点と点の間に線を引き、4辺すべてを囲んでボックスを作ったプレイヤーが得点。ボックスを作ったら続けて打てる。最終的に多くのボックスを持った方が勝ち。あなたは <strong style="color:#f472b6">🟣ピンク</strong>、AIは <strong style="color:#00d4ff">🔵青</strong>。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-28"><div class="score-label">🟣 あなた</div><div class="score-value" id="dnb-score-p">0</div></div>
-      <div class="score-panel min-w-28"><div class="score-label">🔵 AI</div><div class="score-value" id="dnb-score-a">0</div></div>
-    </div>
-    <div id="dnb-status" class="text-center text-slate-300 mb-3 font-semibold text-lg min-h-7"></div>
-    <div class="flex justify-center mb-4 overflow-x-auto">
-      <svg id="dnb-svg" style="width:min(100%,420px);height:min(100vw,420px);touch-action:none"></svg>
-    </div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" onclick="dnbNewGame()">🔄 新しいゲーム</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== GAME 5: 2048 ===== -->
-<div id="game-g2048" class="game-screen min-h-screen">
-  <div class="max-w-md mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">2048</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>矢印キー（またはスワイプ）でタイルをスライドさせ、同じ数字のタイルを合体させる。2048のタイルを作ると達成！盤面が埋まり動けなくなるとゲームオーバー。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-28"><div class="score-label">スコア</div><div class="score-value" id="g2048-score">0</div></div>
-      <div class="score-panel min-w-28"><div class="score-label">ベスト</div><div class="score-value" id="g2048-best">0</div></div>
-    </div>
-    <div id="g2048-msg" class="text-center font-black text-2xl mb-3 min-h-8"></div>
-    <div id="g2048-board" class="mb-6 mx-auto" style="max-width:320px"></div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" onclick="g2048NewGame()">🔄 新しいゲーム</button>
-    </div>
-    <!-- Mobile controls -->
-    <div class="grid grid-cols-3 gap-2 max-w-40 mx-auto mt-6 md:hidden">
-      <div></div>
-      <button class="btn-secondary py-3" onclick="g2048Move('up')">▲</button>
-      <div></div>
-      <button class="btn-secondary py-3" onclick="g2048Move('left')">◀</button>
-      <button class="btn-secondary py-3" onclick="g2048Move('down')">▼</button>
-      <button class="btn-secondary py-3" onclick="g2048Move('right')">▶</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ===== GAME 6: TETRIS ===== -->
-<div id="game-tetris" class="game-screen min-h-screen">
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">テトリス</h2>
-    </div>
-    <div class="rule-box mb-4">
-      📖 <strong>ルール：</strong>落ちてくるブロック（テトロミノ）を操作して横一列を埋めると消去。← →移動 / ↑回転 / ↓加速 / Space：即落下 / C：ホールド。ラインを消すほど加速！
-    </div>
-    <div class="flex gap-4 justify-center flex-wrap items-start">
-      <!-- Left panel -->
-      <div class="flex flex-col gap-3" style="min-width:90px">
-        <div class="score-panel"><div class="score-label">HOLD</div><canvas id="tetris-hold-canvas" width="80" height="80"></canvas></div>
-        <div class="score-panel"><div class="score-label">スコア</div><div class="score-value text-xl" id="tet-score">0</div></div>
-        <div class="score-panel"><div class="score-label">レベル</div><div class="score-value text-xl" id="tet-level">1</div></div>
-        <div class="score-panel"><div class="score-label">ライン</div><div class="score-value text-xl" id="tet-lines">0</div></div>
-        <div class="score-panel"><div class="score-label">ベスト</div><div class="score-value text-sm" id="tet-best">0</div></div>
+/* ============================================================
+   ROOM CREATE — 3 STEPS
+   Step 1: オンライン/オフライン選択
+   Step 2: 人数・役職設定
+   Step 3: QRコード表示
+   ============================================================ */
+function stepBar(active){
+  // active: 1,2,3
+  const labels=['方式選択','人数設定','QRコード'];
+  const items = labels.map((lb,i)=>{
+    const n=i+1;
+    const cls = n<active?'done':n===active?'active':'';
+    const lineCls = n<active?'done':'';
+    return `<div class="step-wrap">
+      ${n>1?`<div class="step-line ${lineCls}" style="flex:1"></div>`:'<div style="flex:1"></div>'}
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="step-dot ${cls}">${n<active?'✓':n}</div>
+        <div style="font-size:.68rem;color:${n===active?'var(--vio2)':'var(--dim2)'};margin-top:3px;white-space:nowrap">${lb}</div>
       </div>
-      <!-- Main board -->
-      <div class="flex flex-col items-center">
-        <div id="tet-status" class="text-center font-bold text-lg mb-2 min-h-7 text-slate-300"></div>
-        <canvas id="tetris-canvas" width="200" height="400"></canvas>
-        <div class="flex gap-2 mt-3 flex-wrap justify-center">
-          <button class="btn-primary text-sm px-4 py-2" id="tet-start-btn" onclick="tetStartStop()">▶ スタート</button>
-          <button class="btn-secondary text-sm px-4 py-2" onclick="tetReset()">🔄 リセット</button>
+      ${n<labels.length?`<div class="step-line ${n<active?'done':''}" style="flex:1"></div>`:'<div style="flex:1"></div>'}
+    </div>`;
+  }).join('');
+  return `<div class="step-bar" style="margin:0 0 20px">${items}</div>`;
+}
+
+function roomCreate(){
+  // Step 1
+  R(`<div class="screen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="home()">← 戻る</button>
+      <h2 style="margin:0">ルームを作る</h2>
+    </div>
+    ${stepBar(1)}
+
+    <p class="sec-label">対戦方式を選ぶ</p>
+    <div style="display:flex;gap:12px;margin-bottom:20px">
+      <div class="mode-card online-sel ${S.roomType==='online'?'selected':''}" id="mc-online" onclick="selRoomType('online')">
+        <div class="mode-card-icon">📡</div>
+        <b>オンライン</b>
+        <small>QRコードやURLで離れた場所の友達と遊ぶ</small>
+      </div>
+      <div class="mode-card offline-sel ${S.roomType==='offline'?'selected':''}" id="mc-offline" onclick="selRoomType('offline')">
+        <div class="mode-card-icon">🤝</div>
+        <b>オフライン対談</b>
+        <small>同じ場所に集まって対面で遊ぶ</small>
+      </div>
+    </div>
+
+    <div class="card" id="rt-desc" style="margin-bottom:8px"></div>
+
+    <button class="btn btn-vio" onclick="roomStep2()">次へ：人数設定 →</button>
+  </div>`);
+  updateRoomTypeDesc();
+}
+
+function selRoomType(t){
+  S.roomType=t;
+  qsa('.mode-card').forEach(c=>c.classList.remove('selected'));
+  qs(t==='online'?'#mc-online':'#mc-offline').classList.add('selected');
+  updateRoomTypeDesc();
+}
+function updateRoomTypeDesc(){
+  const el=qs('#rt-desc'); if(!el)return;
+  if(S.roomType==='online'){
+    el.innerHTML=`<div class="tag cyan" style="margin-bottom:8px">📡 オンライン</div>
+    <p style="font-size:.88rem;color:var(--dim)">QRコード・URLで離れた場所の友達に共有します。<br>各自のスマホで役職確認・投票を行います。</p>`;
+  } else {
+    el.innerHTML=`<div class="tag vio" style="margin-bottom:8px">🤝 オフライン対談</div>
+    <p style="font-size:.88rem;color:var(--dim)">同じ場所に集まって対面で遊びます。<br>役職確認・夜行動・投票をそれぞれ行います。</p>`;
+  }
+}
+
+function roomStep2(){
+  // Step 2
+  R(`<div class="screen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="roomCreate()">← 戻る</button>
+      <h2 style="margin:0">人数・役職設定</h2>
+    </div>
+    ${stepBar(2)}
+
+    <p class="sec-label">プレイヤー人数</p>
+    <div class="card">
+      <div class="row">
+        <span>人間プレイヤー</span>
+        <span class="stepper">
+          <button class="st-btn" onclick="adjH(-1)">−</button>
+          <b id="hv">${S.humans}</b>
+          <button class="st-btn" onclick="adjH(1)">＋</button>
+        </span>
+      </div>
+      <div class="row">
+        <span>AI Bot</span>
+        <span class="stepper">
+          <button class="st-btn" onclick="adjB(-1)">−</button>
+          <b id="bv">${S.bots}</b>
+          <button class="st-btn" onclick="adjB(1)">＋</button>
+        </span>
+      </div>
+      <div class="row" style="border:none;padding-bottom:0">
+        <span id="total-note" style="font-size:.86rem"></span>
+      </div>
+    </div>
+
+    <p class="sec-label">役職設定</p>
+    <div class="card">
+      <div class="role-toggle">
+        <span>🔮 占い師</span>
+        <label class="toggle-sw"><input type="checkbox" id="r-seer" ${S.roles.seer?'checked':''}><span class="toggle-sl"></span></label>
+      </div>
+      <div class="role-toggle">
+        <span>🛡️ 騎士</span>
+        <label class="toggle-sw"><input type="checkbox" id="r-knight" ${S.roles.knight?'checked':''}><span class="toggle-sl"></span></label>
+      </div>
+      <div style="padding:8px 0 0;font-size:.8rem;color:var(--dim)">※ スパイと人狼は必ず含まれます</div>
+    </div>
+
+    <p class="sec-label">プレイヤー名</p>
+    <div class="card" id="name-inputs">${buildNameInputs()}</div>
+
+    <button class="btn btn-vio" id="step2-next" onclick="roomStep3()">次へ：QRコード生成 →</button>
+  </div>`);
+  updateTotalNote();
+  qs('#r-seer').onchange=ev=>{S.roles.seer=ev.target.checked};
+  qs('#r-knight').onchange=ev=>{S.roles.knight=ev.target.checked};
+}
+
+function buildNameInputs(){
+  return Array.from({length:S.humans},(_,i)=>
+    `<input maxlength="8" placeholder="プレイヤー${i+1}" value="${e(S.names[i]||'')}" oninput="S.names[${i}]=this.value" style="margin:4px 0">`
+  ).join('');
+}
+function adjH(d){
+  S.humans=Math.min(8,Math.max(1,S.humans+d));
+  qs('#hv').textContent=S.humans;
+  qs('#name-inputs').innerHTML=buildNameInputs();
+  updateTotalNote();
+}
+function adjB(d){
+  S.bots=Math.min(6,Math.max(0,S.bots+d));
+  qs('#bv').textContent=S.bots;
+  updateTotalNote();
+}
+function updateTotalNote(){
+  const t=S.humans+S.bots, ok=t>=4&&t<=8;
+  const el=qs('#total-note');
+  if(el) el.innerHTML=`<span class="${ok?'ok-c':'ng'}">合計 ${t} 人　${ok?'✓ OK':'4〜8人で遊べます'}</span>`;
+  const nb=qs('#step2-next');
+  if(nb) nb.disabled=!ok;
+}
+
+function roomStep3(){
+  const t=S.humans+S.bots;
+  if(t<4||t>8){toast('4〜8人で遊べます');return;}
+
+  // オンライン・オフライン両方ともコードを生成し localStorage に保存
+  const code    = genCode();
+  const baseUrl = location.href.split('?')[0];
+  const roomUrl = `${baseUrl}?room=${code}`;
+  const qrUrl   = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(roomUrl)}&size=200x200&bgcolor=ffffff&color=000000&qzone=2`;
+
+  // ルーム設定を localStorage に保存（参加者がコード入力時に読み込む）
+  const roomData = {
+    code,
+    roomType: S.roomType,
+    humans: S.humans,
+    bots: S.bots,
+    names: [...S.names],
+    roles: {...S.roles},
+    createdAt: Date.now(),
+  };
+  try { localStorage.setItem('ww_room_' + code, JSON.stringify(roomData)); } catch(_){}
+
+  const isOnline = S.roomType === 'online';
+  const roleLabel = [S.roles.seer?'🔮占い師':'', S.roles.knight?'🛡️騎士':''].filter(Boolean).join(' ') || '基本のみ';
+
+  R(`<div class="screen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="roomStep2()">← 戻る</button>
+      <h2 style="margin:0">${isOnline ? 'QRコード' : 'ルームコード'}</h2>
+    </div>
+    ${stepBar(3)}
+
+    <p class="sec-label">暗唱番号（ルームコード）</p>
+    <div class="room-code-big" onclick="copyText('${code}')" title="タップでコピー">${code}</div>
+    <p style="text-align:center;color:var(--dim);font-size:.82rem;margin-bottom:8px">
+      ${isOnline ? 'タップでコピー — 友達にこのコードを教えてください' : 'この番号を参加者に口頭で伝えてください'}
+    </p>
+
+    ${isOnline ? `
+    <p class="sec-label">QRコード / URL</p>
+    <div class="qr-wrap">
+      <img src="${e(qrUrl)}" width="200" height="200" alt="QR" loading="lazy">
+      <div style="font-size:.78rem;color:var(--dim);text-align:center;word-break:break-all;max-width:320px">${e(roomUrl)}</div>
+      <button class="btn btn-ghost btn-sm" style="width:auto;margin-top:4px" onclick="copyText('${e(roomUrl).replace(/'/g,"\\'")}')">🔗 URLをコピー</button>
+    </div>
+    ` : `
+    <div class="card vio" style="margin-bottom:4px">
+      <p style="font-size:.88rem;color:var(--vio2);margin:0">
+        🤝 <b>オフライン対談</b><br>
+        参加者は「参加する」からこのコードを入力して入室できます。<br>
+        ホスト（あなた）は「ゲーム開始」を押してください。
+      </p>
+    </div>
+    `}
+
+    <div class="card" style="margin-top:6px">
+      <div class="row"><span>方式</span><span class="tag ${isOnline?'cyan':'vio'}">${isOnline?'📡 オンライン':'🤝 オフライン'}</span></div>
+      <div class="row"><span>合計人数</span><span>${S.humans+S.bots} 人</span></div>
+      <div class="row"><span>人間 / Bot</span><span>${S.humans} / ${S.bots}</span></div>
+      <div class="row" style="border:none"><span>役職</span><span style="font-size:.85rem">${roleLabel}</span></div>
+    </div>
+
+    <button class="btn btn-red" style="margin-top:8px" onclick="startFromRoom()">🐺 ゲーム開始</button>
+  </div>`);
+}
+
+function genCode(){ return String(Math.floor(10000+Math.random()*90000)); }
+function startFromRoom(){
+  const t=S.humans+S.bots;
+  if(t<4||t>8){toast('4〜8人で遊べます');return;}
+  S.mode='room';
+  startGame();
+}
+
+/* ============================================================
+   JOIN SCREEN
+   ============================================================ */
+function joinScreen(){
+  R(`<div class="screen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="home()">← 戻る</button>
+      <h2 style="margin:0">ルームに参加</h2>
+    </div>
+
+    <div class="card vio" style="margin-bottom:16px">
+      <p style="font-size:.88rem;color:var(--vio2);margin:0">
+        🔑 ホストから教わった <b>5桁の暗唱番号（ルームコード）</b> を入力してください。<br>
+        オンライン・オフラインどちらでも同じコードで入室できます。
+      </p>
+    </div>
+
+    <p class="sec-label">暗唱番号を入力</p>
+    <input class="code-input" id="join-code" maxlength="5" placeholder="12345"
+      oninput="this.value=this.value.replace(/\\D/g,'');checkJoinCode()"
+      style="text-align:center">
+
+    <div id="join-preview" style="margin-top:10px"></div>
+
+    <button class="btn btn-vio" id="join-btn" onclick="doJoin()" disabled>入室する →</button>
+
+    <div class="divider"></div>
+    <p style="text-align:center;color:var(--dim);font-size:.82rem">
+      QRコードを読み取った場合は自動的に入室されます
+    </p>
+  </div>`);
+}
+
+function checkJoinCode(){
+  const c = qs('#join-code')?.value.trim();
+  const btn = qs('#join-btn');
+  const preview = qs('#join-preview');
+  if(!btn||!preview)return;
+
+  if(c?.length===5){
+    btn.disabled=false;
+    // localStorage にルームデータがあれば設定をプレビュー表示
+    try{
+      const raw = localStorage.getItem('ww_room_'+c);
+      if(raw){
+        const d = JSON.parse(raw);
+        const age = Math.floor((Date.now()-d.createdAt)/60000);
+        const roleLabel=[d.roles?.seer?'🔮占い師':'',d.roles?.knight?'🛡️騎士':''].filter(Boolean).join(' ')||'基本のみ';
+        preview.innerHTML=`<div class="card ok" style="font-size:.86rem">
+          <div style="font-weight:700;margin-bottom:6px;color:var(--ok2)">✓ ルームが見つかりました</div>
+          <div class="row"><span>方式</span><span class="tag ${d.roomType==='online'?'cyan':'vio'}">${d.roomType==='online'?'📡 オンライン':'🤝 オフライン'}</span></div>
+          <div class="row"><span>合計人数</span><span>${(d.humans||0)+(d.bots||0)} 人</span></div>
+          <div class="row" style="border:none"><span>役職</span><span>${roleLabel}</span></div>
+          <div style="font-size:.74rem;color:var(--dim);margin-top:4px">${age<1?'たった今':'約'+age+'分前'}に作成</div>
+        </div>`;
+        return;
+      }
+    }catch(_){}
+    preview.innerHTML=`<div class="card" style="font-size:.84rem;color:var(--dim)">ルームデータが見つかりません。<br>コードを確認するかソロモードで続行します。</div>`;
+  } else {
+    btn.disabled=true;
+    preview.innerHTML='';
+  }
+}
+
+function joinRoomAuto(code){
+  // URLパラメータ経由の自動入室
+  toast(`🚪 ルーム ${code} に接続中…`);
+  S.mode='join';
+  applyRoomData(code, ()=>soloSetup());
+}
+
+function doJoin(){
+  const c=qs('#join-code')?.value.trim();
+  if(c?.length!==5){toast('⚠️ 5桁のコードを入力してください');return;}
+  toast(`🚪 ルーム ${c} に接続中…`);
+  applyRoomData(c, ()=>{ S.mode='join'; soloSetup(); });
+}
+
+// localStorage からルームデータを読み込んで S に反映
+function applyRoomData(code, fallback){
+  try{
+    const raw = localStorage.getItem('ww_room_'+code);
+    if(raw){
+      const d = JSON.parse(raw);
+      S.humans = d.humans || S.humans;
+      S.bots   = d.bots   || S.bots;
+      S.names  = d.names  ? [...d.names] : S.names;
+      S.roles  = d.roles  ? {...d.roles} : S.roles;
+      S.roomType = d.roomType || S.roomType;
+    }
+  }catch(_){}
+  setTimeout(fallback, 600);
+}
+
+/* ============================================================
+   SOLO SETUP
+   ============================================================ */
+function soloSetup(){
+  S.mode='solo';
+  R(`<div class="screen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="home()">← 戻る</button>
+      <h2 style="margin:0">ソロモード設定</h2>
+      <span class="tag gold">🤖 AI Bot</span>
+    </div>
+
+    <div class="card gold">
+      <p style="font-size:.88rem;color:var(--gold2);margin:0">あなた1人 vs 強化AI Botたちで対戦。Botは状況に応じたリアルな発言をします。</p>
+    </div>
+
+    <p class="sec-label">あなたの名前</p>
+    <input maxlength="8" placeholder="プレイヤー名" value="${e(S.names[0]||'')}" oninput="S.names[0]=this.value" id="solo-name">
+
+    <p class="sec-label">AI Bot人数</p>
+    <div class="card">
+      <div class="row" style="border:none">
+        <span>Bot人数（合計 <b id="sv-total">${1+S.bots}</b> 人）</span>
+        <span class="stepper">
+          <button class="st-btn" onclick="adjSoloBot(-1)">−</button>
+          <b id="sv">${S.bots}</b>
+          <button class="st-btn" onclick="adjSoloBot(1)">＋</button>
+        </span>
+      </div>
+      <p style="font-size:.82rem;padding:6px 0 0" id="sv-note"></p>
+    </div>
+
+    <p class="sec-label">役職設定</p>
+    <div class="card">
+      <div class="role-toggle">
+        <span>🔮 占い師</span>
+        <label class="toggle-sw"><input type="checkbox" id="s-seer" ${S.roles.seer?'checked':''}><span class="toggle-sl"></span></label>
+      </div>
+      <div class="role-toggle">
+        <span>🛡️ 騎士</span>
+        <label class="toggle-sw"><input type="checkbox" id="s-knight" ${S.roles.knight?'checked':''}><span class="toggle-sl"></span></label>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="solo-start-btn" onclick="startSolo()">🐺 ゲーム開始</button>
+  </div>`);
+  updateSoloBotNote();
+  qs('#s-seer').onchange=ev=>{S.roles.seer=ev.target.checked};
+  qs('#s-knight').onchange=ev=>{S.roles.knight=ev.target.checked};
+}
+function adjSoloBot(d){
+  S.bots=Math.min(7,Math.max(3,S.bots+d));
+  qs('#sv').textContent=S.bots;
+  qs('#sv-total').textContent=1+S.bots;
+  updateSoloBotNote();
+}
+function updateSoloBotNote(){
+  const t=1+S.bots, ok=t>=4&&t<=8;
+  const el=qs('#sv-note');
+  if(el) el.innerHTML=`<span class="${ok?'ok-c':'ng'}">合計 ${t} 人　${ok?'✓ OK':'4〜8人必要'}</span>`;
+  const sb=qs('#solo-start-btn');
+  if(sb) sb.disabled=!ok;
+}
+function startSolo(){
+  S.humans=1;
+  const nm=qs('#solo-name')?.value.trim();
+  if(nm) S.names[0]=nm;
+  startGame();
+}
+
+/* ============================================================
+   GAME START
+   ============================================================ */
+function buildRoles(total){
+  // 3人特殊ルール: 市民と人狼だけ、かつ人狼ゼロの可能性あり（完全ランダム）
+  if(total===3){
+    // wolf が出るかどうか自体をランダムに（1/3の確率でwolfなし）
+    const hasWolf = Math.random() > 0.33;
+    const roles = hasWolf ? ['wolf','citizen','citizen'] : ['citizen','citizen','citizen'];
+    return shuffle(roles);
+  }
+  const roles=['wolf','spy'];
+  if(total>=7) roles.push('wolf');
+  if(S.roles.seer)  roles.push('seer');
+  if(S.roles.knight)roles.push('knight');
+  while(roles.length<total) roles.push('citizen');
+  return shuffle(roles).slice(0,total);
+}
+
+function startGame(){
+  const total=S.humans+S.bots;
+  if(total<4||total>8){toast('4〜8人で遊べます');return;}
+  const roles=buildRoles(total);
+  const usedBotNames=shuffle([...BOT_NAMES]);
+  const players=[];
+  for(let i=0;i<total;i++){
+    const isBot=i>=S.humans;
+    const name=isBot
+      ? usedBotNames[i-S.humans]
+      : ((S.names[i]||'').trim()||`プレイヤー${i+1}`);
+    players.push({id:i,bot:isBot,alive:true,role:roles[i],name,coRole:null});
+  }
+  G={
+    players,night:0,day:0,
+    chat:[],dayLog:[],seerResults:[],
+    actions:{kill:null,protect:null},
+    votes:{},
+    timers:{iv:null,to:null,bots:[]},
+    soloMode: S.mode==='solo',
+    doneSet: new Set(),   // 昼の完了ボタン押した人
+    extVotes:{yes:0,no:0,asked:false},
+  };
+  const humanPlayers=G.players.filter(p=>!p.bot);
+  if(humanPlayers.length===0){ nightPhase(); return; }
+  // 3人かつ人狼ゼロのケースを役職確認後に伝える
+  passDevice(humanPlayers,0,'役職確認',showRoleCard,()=>{
+    if(G.players.length===3 && G.players.every(p=>p.role!=='wolf')){
+      show3pNowolf();
+    } else {
+      nightPhase();
+    }
+  });
+}
+
+/* ============================================================
+   3人・人狼ゼロ 告知画面
+   ============================================================ */
+function show3pNowolf(){
+  R(`<div class="screen">
+    <div class="center">
+      <div class="big-emoji">☀️</div>
+      <h2 style="margin:10px 0 6px">今回は全員が市民でした！</h2>
+      <p style="color:var(--dim);max-width:280px;margin-bottom:4px">
+        3人ゲームでは人狼が出ない可能性があります。<br>
+        今回はそのケース — 全員が正直者の村です。
+      </p>
+      <div class="card ok" style="margin-top:12px;width:100%;max-width:320px">
+        ${G.players.map(p=>`<div class="row"><span>${e(p.name)}</span><span class="tag ok">🏠 市民</span></div>`).join('')}
+      </div>
+      <button class="btn btn-vio" style="max-width:280px;margin-top:20px" onclick="showResult('citizen','全員が市民でした。誰も人狼ではありません！')">結果を見る</button>
+      <button class="btn btn-ghost" style="max-width:280px;margin-top:8px" onclick="startGame()">🔄 もう一度（運次第で人狼が出るかも）</button>
+    </div>
+  </div>`);
+}
+
+/* ============================================================
+   PASS DEVICE
+   ============================================================ */
+function passDevice(list,idx,title,showFn,done){
+  if(idx>=list.length) return done();
+  const p=list[idx];
+  const isFirst=idx===0;
+  R(`<div class="screen">
+    <div class="center">
+      <span class="tag vio">${e(title)}</span>
+      <div style="margin:20px 0 6px;font-size:1rem;color:var(--dim)">${isFirst?'端末を最初の人へ渡してください':'次の人へ渡してください'}</div>
+      <div style="font-size:2.1rem;font-weight:900;margin:8px 0">${e(p.name)} さん</div>
+      <p style="color:var(--dim2);font-size:.86rem;max-width:260px">他の人は画面を見ないでください</p>
+      <button class="btn btn-vio" style="max-width:280px;margin-top:24px" onclick="window._pg()">
+        ${e(p.name)} です。画面を見る 👁
+      </button>
+    </div>
+  </div>`);
+  window._pg=()=>showFn(p,()=>passDevice(list,idx+1,title,showFn,done));
+}
+
+/* ============================================================
+   ROLE CARD
+   ============================================================ */
+function showRoleCard(p,next){
+  const rc=RCOL[p.role]||'';
+  let extra='';
+  if(p.role==='wolf'){
+    const sp=G.players.find(x=>x.role==='spy');
+    const al=G.players.filter(x=>x.role==='wolf'&&x.id!==p.id);
+    if(sp) extra+=`<div class="card vio" style="margin-top:10px;text-align:left"><small class="dim-c">スパイ（仲間）</small><div style="font-weight:700;font-size:1.05rem;margin-top:4px">🕵️ ${e(sp.name)}</div></div>`;
+    if(al.length) extra+=`<div class="card red" style="margin-top:6px;text-align:left"><small class="dim-c">人狼の仲間</small><div style="font-weight:700;font-size:1.05rem;margin-top:4px">🐺 ${al.map(a=>e(a.name)).join('、')}</div></div>`;
+  }
+  if(p.role==='spy'){
+    const ws=G.players.filter(x=>x.role==='wolf');
+    extra+=`<div class="card red" style="margin-top:10px;text-align:left"><small class="dim-c">人狼（仲間）</small><div style="font-weight:700;font-size:1.05rem;margin-top:4px">${ws.map(w=>`🐺 ${e(w.name)}`).join('<br>')}</div></div>`;
+  }
+  R(`<div class="screen night-screen">
+    <div class="center" style="min-height:auto;padding-top:40px">
+      <span class="tag vio" style="margin-bottom:16px">役職確認</span>
+      <div class="role-card ${rc}" style="width:100%;max-width:340px">
+        <div class="rc-icon">${RI[p.role]}</div>
+        <div class="rc-name">${RN[p.role]}</div>
+        <div class="rc-desc">${e(RD[p.role])}</div>
+      </div>
+      ${extra}
+      <button class="btn btn-vio" style="max-width:280px;margin-top:22px" onclick="window._pg()">確認した。次の人へ →</button>
+    </div>
+  </div>`);
+  window._pg=next;
+}
+
+/* ============================================================
+   NIGHT PHASE
+   ============================================================ */
+function nightPhase(){
+  clearTimers();
+  G.night++;
+  G.actions={kill:null,protect:null};
+  const isSoloFirstNight = G.soloMode && G.night===1;
+  const is3player = G.players.length === 3; // 3人ルール: 夜の人狼行動なし
+
+  const alivePlayers=alive();
+
+  // ── Bot夜行動 ──
+  G.players.filter(p=>p.bot&&p.alive).forEach(b=>{
+    if(b.role==='wolf'){
+      // 3人ゲームは夜の襲撃なし
+      if(is3player) return;
+      // ソロモード初日夜はプレイヤー（人間）を狙わない
+      let targets = alivePlayers.filter(x=>x.id!==b.id&&x.role!=='spy'&&x.role!=='wolf');
+      if(isSoloFirstNight) targets = targets.filter(x=>x.bot); // Bot同士だけ
+      if(targets.length){
+        G.actions.kill=rand(targets).id;
+        const mate=G.players.find(x=>x.role==='spy'&&x.alive);
+        if(mate) addNightChat(b.name,`今夜は ${G.players[G.actions.kill].name} さんを消そう。どう思う？`,'wolf');
+      }
+    }
+    if(b.role==='spy'){
+      const ws=G.players.filter(x=>x.role==='wolf'&&x.alive&&x.bot);
+      if(ws.length) addNightChat(b.name,'了解。昼は怪しまれないように動くね。','wolf');
+    }
+    if(b.role==='knight'){
+      const tg=alivePlayers.filter(x=>x.id!==b.id);
+      if(tg.length) G.actions.protect=rand(tg).id;
+    }
+    if(b.role==='seer'){
+      const tg=alivePlayers.filter(x=>x.id!==b.id&&!G.seerResults.find(r=>r.id===x.id));
+      if(tg.length){
+        const t=rand(tg);
+        G.seerResults.push({id:t.id,name:t.name,result:t.role==='wolf'?'wolf':'white',night:G.night,by:b.name});
+      }
+    }
+  });
+
+  const humanNight=G.players.filter(p=>!p.bot&&p.alive);
+  if(humanNight.length===0) return resolveNight();
+  showNightIntro(()=>passDevice(humanNight,0,`夜${G.night}`,showNightAction,resolveNight));
+}
+
+function addNightChat(from,text,type='normal'){
+  G.chat.push({n:G.night,from,text,type});
+}
+
+function showNightIntro(cb){
+  R(`<div class="screen night-screen">
+    <div class="center">
+      <div class="big-emoji" style="filter:drop-shadow(0 0 28px rgba(139,127,212,.9))">🌙</div>
+      <div class="night-title serif">${G.night}日目の夜</div>
+      <p style="color:var(--dim);max-width:260px;margin-top:8px">静寂が村を包みます…<br>順番に端末を渡してください</p>
+      <button class="btn btn-vio" style="max-width:280px;margin-top:28px" onclick="window._ni()">夜を始める</button>
+    </div>
+  </div>`);
+  window._ni=cb;
+}
+
+function showNightAction(p,next){
+  const others=alive().filter(x=>x.id!==p.id);
+
+  // 市民: 議論ログを見るだけの画面（「次へ」なし → 「朝を待つ」ボタン1個）
+  if(p.role==='citizen'){
+    R(`<div class="screen night-screen">
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid rgba(139,127,212,.2);margin-bottom:12px">
+        <span class="tag vio">🏠 市民の夜</span>
+        <span style="color:var(--dim);font-size:.84rem">夜${G.night}</span>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:2rem;margin-bottom:8px;text-align:center">😴</div>
+        <p style="text-align:center;color:var(--dim);font-size:.9rem">あなたは静かに眠ります。<br>夜、何かが起きているようです…</p>
+      </div>
+      <p class="sec-label">生存者リスト</p>
+      <div class="alive-chips">${alive().map(pl=>`<div class="chip">${e(pl.name)}</div>`).join('')}</div>
+      <p class="sec-label">昨日の議論ログ</p>
+      <div class="card" style="padding:10px 12px">
+        <div class="log-box" id="night-citizen-log">
+          ${G.dayLog.length
+            ? G.dayLog.map(m=>`<div class="msg ${m.isMe?'me':''}"><small>${e(m.from)}</small>${e(m.text)}</div>`).join('')
+            : '<div class="msg sys"><small>システム</small>まだ議論はありません</div>'}
         </div>
       </div>
-      <!-- Right panel -->
-      <div class="flex flex-col gap-3" style="min-width:90px">
-        <div class="score-panel"><div class="score-label">NEXT</div><canvas id="tetris-next-canvas" width="80" height="240"></canvas></div>
-      </div>
-    </div>
-    <!-- Mobile controls -->
-    <div class="mt-6 md:hidden">
-      <div class="grid grid-cols-3 gap-2 max-w-44 mx-auto">
-        <div></div>
-        <button class="btn-secondary py-4 text-xl" ontouchstart="tetKey('up')" onclick="tetKey('up')">↑</button>
-        <div></div>
-        <button class="btn-secondary py-4 text-xl" ontouchstart="tetKey('left')" onclick="tetKey('left')">←</button>
-        <button class="btn-secondary py-4 text-xl" ontouchstart="tetKey('down')" onclick="tetKey('down')">↓</button>
-        <button class="btn-secondary py-4 text-xl" ontouchstart="tetKey('right')" onclick="tetKey('right')">→</button>
-        <button class="btn-secondary py-4 text-sm col-span-2" ontouchstart="tetKey('space')" onclick="tetKey('space')">SPACE</button>
-        <button class="btn-secondary py-4 text-sm" ontouchstart="tetKey('hold')" onclick="tetKey('hold')">HOLD</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== GAME 7: MINESWEEPER ===== -->
-<div id="game-mine" class="game-screen min-h-screen">
-  <div class="max-w-lg mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">マインスイーパー</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>9×9のグリッドに10個の地雷が隠れています。左クリックでセルを開く、右クリック（長押し）で旗🚩を立てる。数字は周囲の地雷数。全ての安全なセルを開けたらクリア！
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-24"><div class="score-label">💣 残り地雷</div><div class="score-value" id="ms-mines">10</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">⏱ タイム</div><div class="score-value" id="ms-time">0</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">🏆 ベスト</div><div class="score-value text-sm" id="ms-best">--</div></div>
-    </div>
-    <div id="ms-status" class="text-center font-bold text-lg mb-3 min-h-7 text-slate-300"></div>
-    <div id="ms-board" class="mx-auto mb-4" style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:340px"></div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" onclick="msNewGame()">🔄 新しいゲーム</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ===== GAME 8: SNAKE ===== -->
-<div id="game-snake" class="game-screen min-h-screen">
-  <div class="max-w-xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">スネーク</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>矢印キー（またはスワイプ/ボタン）でヘビを操作し、赤いエサ🍎を食べて体を伸ばせ。壁や自分の体に衝突するとゲームオーバー。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-28"><div class="score-label">スコア</div><div class="score-value" id="snake-score">0</div></div>
-      <div class="score-panel min-w-28"><div class="score-label">ベスト</div><div class="score-value" id="snake-best">0</div></div>
-    </div>
-    <div id="snake-status" class="text-center font-bold text-lg mb-3 min-h-7 text-slate-300"></div>
-    <div class="flex justify-center mb-4">
-      <canvas id="snake-canvas" width="360" height="360" style="max-width:100%"></canvas>
-    </div>
-    <div class="flex gap-3 justify-center flex-wrap mb-4">
-      <button class="btn-primary" id="snake-start-btn" onclick="snakeStartStop()">▶ スタート</button>
-      <button class="btn-secondary" onclick="snakeReset()">🔄 リセット</button>
-    </div>
-    <!-- Mobile D-pad -->
-    <div class="grid grid-cols-3 gap-2 max-w-40 mx-auto md:hidden">
-      <div></div>
-      <button class="btn-secondary py-4 text-xl" ontouchstart="snakeDir(0,-1)" onclick="snakeDir(0,-1)">▲</button>
-      <div></div>
-      <button class="btn-secondary py-4 text-xl" ontouchstart="snakeDir(-1,0)" onclick="snakeDir(-1,0)">◀</button>
-      <button class="btn-secondary py-4 text-xl" ontouchstart="snakeDir(0,1)" onclick="snakeDir(0,1)">▼</button>
-      <button class="btn-secondary py-4 text-xl" ontouchstart="snakeDir(1,0)" onclick="snakeDir(1,0)">▶</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== GAME 9: BREAKOUT ===== -->
-<div id="game-breakout" class="game-screen min-h-screen">
-  <div class="max-w-xl mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">ブロック崩し</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>マウス移動（またはスライダー）でパドルを操作してボールを跳ね返し、すべてのブロックを崩せ！ボールを落とすと残機が1減る。残機0でゲームオーバー。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-28"><div class="score-label">スコア</div><div class="score-value" id="bo-score">0</div></div>
-      <div class="score-panel min-w-28"><div class="score-label">残機</div><div class="score-value" id="bo-lives">3</div></div>
-      <div class="score-panel min-w-28"><div class="score-label">ベスト</div><div class="score-value" id="bo-best">0</div></div>
-    </div>
-    <div id="bo-status" class="text-center font-bold text-lg mb-3 min-h-7 text-slate-300"></div>
-    <div class="flex justify-center mb-2">
-      <canvas id="breakout-canvas" width="420" height="340" style="max-width:100%"></canvas>
-    </div>
-    <!-- Mobile slider -->
-    <input type="range" id="bo-slider" min="0" max="100" value="50"
-      class="w-full max-w-sm mx-auto block mb-3 accent-purple-500 md:hidden"
-      oninput="boSliderMove(this.value)">
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-primary" id="bo-start-btn" onclick="boStartStop()">▶ スタート</button>
-      <button class="btn-secondary" onclick="boReset()">🔄 リセット</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== GAME 10: SUDOKU ===== -->
-<div id="game-sudoku" class="game-screen min-h-screen">
-  <div class="max-w-lg mx-auto px-4 py-8">
-    <div class="flex items-center gap-3 mb-6">
-      <button class="btn-home" onclick="showHome()">🏠 ホーム</button>
-      <h2 class="text-2xl font-black header-title">数独</h2>
-    </div>
-    <div class="rule-box mb-6">
-      📖 <strong>ルール：</strong>9×9のグリッドに1〜9の数字を入れる。各行・各列・各3×3ブロックに同じ数字が重複しないように。エラーは赤表示。数字キーまたは下のボタンで入力。
-    </div>
-    <div class="flex gap-4 mb-4 justify-center flex-wrap">
-      <div class="score-panel min-w-24"><div class="score-label">難易度</div><div class="score-value text-base" id="sdk-difficulty">普通</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">⏱ タイム</div><div class="score-value" id="sdk-time">0:00</div></div>
-      <div class="score-panel min-w-24"><div class="score-label">ミス</div><div class="score-value" id="sdk-mistakes">0</div></div>
-    </div>
-    <div id="sdk-status" class="text-center font-bold text-lg mb-3 min-h-7 text-slate-300"></div>
-    <div id="sdk-board" class="sdk-board mx-auto mb-4" style="display:grid;grid-template-columns:repeat(9,1fr);max-width:360px"></div>
-    <!-- Number input buttons -->
-    <div class="grid grid-cols-9 gap-1 max-w-xs mx-auto mb-4">
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(1)">1</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(2)">2</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(3)">3</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(4)">4</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(5)">5</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(6)">6</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(7)">7</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(8)">8</button>
-      <button class="btn-secondary py-2 text-sm font-bold" onclick="sdkInput(9)">9</button>
-    </div>
-    <div class="flex gap-3 justify-center flex-wrap">
-      <button class="btn-secondary" onclick="sdkInput(0)">⌫ 消す</button>
-      <button class="btn-primary" onclick="sdkNewGame('normal')">🔄 新問題（普通）</button>
-      <button class="btn-secondary" onclick="sdkNewGame('hard')">難問</button>
-    </div>
-  </div>
-</div>
-
-
-<script>
-/* =============================================
-   NAVIGATION
-   ============================================= */
-const screens = ['home-screen','game-ttt','game-othello','game-c4','game-dnb','game-g2048','game-tetris','game-mine','game-snake','game-breakout','game-sudoku'];
-
-function showHome() {
-  // Stop all running games
-  if (tetInterval) { clearInterval(tetInterval); tetInterval = null; tetRunning = false; document.getElementById('tet-start-btn').textContent = '▶ スタート'; }
-  if (snakeInterval) { clearInterval(snakeInterval); snakeInterval = null; snakeRunning = false; }
-  if (boAnimId) { cancelAnimationFrame(boAnimId); boAnimId = null; boRunning = false; }
-  if (msTimerInterval) { clearInterval(msTimerInterval); msTimerInterval = null; }
-  if (sdkTimerInterval) { clearInterval(sdkTimerInterval); sdkTimerInterval = null; }
-  screens.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-  document.getElementById('home-screen').classList.add('active');
-  window.scrollTo(0,0);
-}
-
-function showGame(name) {
-  screens.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-  document.getElementById('home-screen').classList.remove('active');
-  const el = document.getElementById('game-' + name);
-  if (el) { el.classList.add('active'); el.classList.add('fade-in'); }
-  window.scrollTo(0,0);
-  // Init game
-  if (name === 'ttt') tttInit();
-  else if (name === 'othello') othInit();
-  else if (name === 'c4') c4Init();
-  else if (name === 'dnb') dnbInit();
-  else if (name === 'g2048') g2048Init();
-  else if (name === 'tetris') tetInit();
-  else if (name === 'mine') msInit();
-  else if (name === 'snake') snakeInit();
-  else if (name === 'breakout') boInit();
-  else if (name === 'sudoku') sdkInit();
-}
-
-// Show home on load
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('home-screen').classList.add('active');
-});
-
-/* =============================================
-   GAME 1: TIC-TAC-TOE (MINIMAX)
-   ============================================= */
-let tttBoard, tttCurrent, tttGameOver;
-const tttScores = JSON.parse(localStorage.getItem('ttt-scores') || '{"p":0,"d":0,"a":0}');
-
-function tttInit() {
-  tttUpdateScoreDisplay();
-  tttNewGame();
-}
-
-function tttNewGame() {
-  tttBoard = Array(9).fill(null);
-  tttCurrent = 'X';
-  tttGameOver = false;
-  tttRenderBoard();
-  document.getElementById('ttt-status').textContent = 'あなたの番 (X)';
-}
-
-function tttRenderBoard() {
-  const board = document.getElementById('ttt-board');
-  board.innerHTML = '';
-  tttBoard.forEach((v, i) => {
-    const cell = document.createElement('div');
-    cell.className = 'ttt-cell' + (v ? ' taken' : '') + (v === 'X' ? ' x' : v === 'O' ? ' o' : '');
-    cell.textContent = v || '';
-    if (!v && !tttGameOver) cell.onclick = () => tttPlayerMove(i);
-    board.appendChild(cell);
-  });
-}
-
-function tttPlayerMove(i) {
-  if (tttBoard[i] || tttGameOver || tttCurrent !== 'X') return;
-  tttBoard[i] = 'X';
-  const win = tttCheckWin(tttBoard);
-  tttRenderBoard();
-  if (win) { tttEnd('player'); return; }
-  if (tttBoard.every(v => v)) { tttEnd('draw'); return; }
-  tttCurrent = 'O';
-  document.getElementById('ttt-status').textContent = 'AIが考え中...';
-  setTimeout(() => {
-    const best = tttMinimax(tttBoard, 0, false);
-    tttBoard[best.idx] = 'O';
-    const win2 = tttCheckWin(tttBoard);
-    tttRenderBoard();
-    if (win2) { tttEnd('ai'); return; }
-    if (tttBoard.every(v => v)) { tttEnd('draw'); return; }
-    tttCurrent = 'X';
-    document.getElementById('ttt-status').textContent = 'あなたの番 (X)';
-  }, 200);
-}
-
-function tttCheckWin(b) {
-  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for (const [a,c,d] of lines) if (b[a] && b[a]===b[c] && b[a]===b[d]) return [a,c,d];
-  return null;
-}
-
-function tttMinimax(b, depth, isMax) {
-  const win = tttCheckWin(b);
-  if (win) return { score: isMax ? -10 + depth : 10 - depth };
-  const empty = b.map((v,i) => v ? null : i).filter(v => v !== null);
-  if (!empty.length) return { score: 0 };
-  let best = isMax ? { score: -Infinity } : { score: Infinity };
-  for (const idx of empty) {
-    b[idx] = isMax ? 'O' : 'X';
-    const result = tttMinimax(b, depth+1, !isMax);
-    b[idx] = null;
-    result.idx = idx;
-    if (isMax ? result.score > best.score : result.score < best.score) best = result;
-  }
-  return best;
-}
-
-function tttEnd(result) {
-  tttGameOver = true;
-  const winLine = tttCheckWin(tttBoard);
-  if (winLine) {
-    const cells = document.getElementById('ttt-board').children;
-    winLine.forEach(i => cells[i].classList.add('win-cell'));
-  }
-  if (result === 'player') {
-    document.getElementById('ttt-status').textContent = '🎉 あなたの勝ち！';
-    tttScores.p++;
-  } else if (result === 'ai') {
-    document.getElementById('ttt-status').textContent = '🤖 AIの勝ち...';
-    tttScores.a++;
-  } else {
-    document.getElementById('ttt-status').textContent = '🤝 引き分け！';
-    tttScores.d++;
-  }
-  localStorage.setItem('ttt-scores', JSON.stringify(tttScores));
-  tttUpdateScoreDisplay();
-}
-
-function tttUpdateScoreDisplay() {
-  document.getElementById('ttt-score-p').textContent = tttScores.p;
-  document.getElementById('ttt-score-d').textContent = tttScores.d;
-  document.getElementById('ttt-score-a').textContent = tttScores.a;
-}
-
-function tttResetScore() {
-  tttScores.p = 0; tttScores.d = 0; tttScores.a = 0;
-  localStorage.setItem('ttt-scores', JSON.stringify(tttScores));
-  tttUpdateScoreDisplay();
-}
-
-/* =============================================
-   GAME 2: OTHELLO (ALPHA-BETA AI)
-   ============================================= */
-let othBoard, othCurrent, othGameOver;
-let othWins = JSON.parse(localStorage.getItem('oth-wl') || '{"w":0,"l":0,"d":0}');
-
-const OTH_SIZE = 8;
-const OTH_DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
-
-// Positional weight table for evaluation
-const OTH_WEIGHTS = [
-  [120,-20, 20,  5,  5, 20,-20,120],
-  [-20,-40, -5, -5, -5, -5,-40,-20],
-  [ 20, -5, 15,  3,  3, 15, -5, 20],
-  [  5, -5,  3,  3,  3,  3, -5,  5],
-  [  5, -5,  3,  3,  3,  3, -5,  5],
-  [ 20, -5, 15,  3,  3, 15, -5, 20],
-  [-20,-40, -5, -5, -5, -5,-40,-20],
-  [120,-20, 20,  5,  5, 20,-20,120]
-];
-
-function othInit() {
-  othBoard = Array.from({length:OTH_SIZE}, () => Array(OTH_SIZE).fill(0));
-  othBoard[3][3] = 1; othBoard[4][4] = 1;
-  othBoard[3][4] = -1; othBoard[4][3] = -1;
-  othCurrent = -1; // -1 = black (player), 1 = white (AI)
-  othGameOver = false;
-  othUpdateWLDisplay();
-  othRender();
-}
-
-function othNewGame() { othInit(); }
-
-function othRender() {
-  const legal = othGetLegal(othBoard, othCurrent);
-  const board = document.getElementById('oth-board');
-  board.innerHTML = '';
-  let black = 0, white = 0;
-  for (let r = 0; r < OTH_SIZE; r++) {
-    for (let c = 0; c < OTH_SIZE; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'othello-cell';
-      const v = othBoard[r][c];
-      if (v !== 0) {
-        const disc = document.createElement('div');
-        disc.className = 'disc ' + (v === -1 ? 'black' : 'white');
-        cell.appendChild(disc);
-        v === -1 ? black++ : white++;
-      } else if (!othGameOver && othCurrent === -1 && legal.some(([lr,lc]) => lr===r && lc===c)) {
-        cell.classList.add('legal', 'legal-dot');
-        cell.onclick = () => othPlayerMove(r, c);
-      }
-      board.appendChild(cell);
-    }
-  }
-  document.getElementById('oth-black').textContent = black;
-  document.getElementById('oth-white').textContent = white;
-  if (!othGameOver) {
-    if (othCurrent === -1) document.getElementById('oth-status').textContent = 'あなたの番 ⚫';
-    else document.getElementById('oth-status').textContent = 'AIが考え中... ⚪';
-  }
-}
-
-function othPlayerMove(r, c) {
-  if (othGameOver || othCurrent !== -1) return;
-  const legal = othGetLegal(othBoard, -1);
-  if (!legal.some(([lr,lc]) => lr===r && lc===c)) return;
-  othApplyMove(othBoard, r, c, -1);
-  othNextTurn();
-}
-
-function othNextTurn() {
-  othCurrent = -othCurrent;
-  othRender();
-  const legal = othGetLegal(othBoard, othCurrent);
-  if (!legal.length) {
-    const opp = othGetLegal(othBoard, -othCurrent);
-    if (!opp.length) { othEndGame(); return; }
-    // Pass
-    const passer = othCurrent === -1 ? 'あなた' : 'AI';
-    document.getElementById('oth-status').textContent = `${passer}はパスします`;
-    setTimeout(() => { othCurrent = -othCurrent; othRender(); if (othCurrent === 1) setTimeout(othAIMove, 400); }, 800);
+      <button class="btn btn-vio" style="margin-top:16px" onclick="window._pg()">🌅 朝を待つ（次へ）</button>
+    </div>`);
+    window._pg=next;
+    const lg=qs('#night-citizen-log');
+    if(lg) lg.scrollTop=lg.scrollHeight;
     return;
   }
-  if (othCurrent === 1) setTimeout(othAIMove, 400);
-}
 
-function othAIMove() {
-  if (othGameOver) return;
-  const result = othAlphaBeta(othBoard, 5, -Infinity, Infinity, true);
-  if (result.move) othApplyMove(othBoard, result.move[0], result.move[1], 1);
-  othNextTurn();
-}
-
-function othGetLegal(b, color) {
-  const moves = [];
-  for (let r = 0; r < OTH_SIZE; r++)
-    for (let c = 0; c < OTH_SIZE; c++)
-      if (b[r][c] === 0 && othWouldFlip(b, r, c, color).length > 0) moves.push([r,c]);
-  return moves;
-}
-
-function othWouldFlip(b, r, c, color) {
-  const flips = [];
-  for (const [dr,dc] of OTH_DIRS) {
-    const line = [];
-    let nr = r+dr, nc = c+dc;
-    while (nr>=0 && nr<OTH_SIZE && nc>=0 && nc<OTH_SIZE && b[nr][nc] === -color) {
-      line.push([nr,nc]); nr += dr; nc += dc;
-    }
-    if (line.length && nr>=0 && nr<OTH_SIZE && nc>=0 && nc<OTH_SIZE && b[nr][nc] === color)
-      flips.push(...line);
-  }
-  return flips;
-}
-
-function othApplyMove(b, r, c, color) {
-  b[r][c] = color;
-  othWouldFlip(b, r, c, color).forEach(([fr,fc]) => b[fr][fc] = color);
-}
-
-function othCopyBoard(b) { return b.map(row => [...row]); }
-
-function othEvaluate(b) {
-  let score = 0;
-  let blackCount = 0, whiteCount = 0;
-  for (let r = 0; r < OTH_SIZE; r++)
-    for (let c = 0; c < OTH_SIZE; c++) {
-      if (b[r][c] === 1)  { score += OTH_WEIGHTS[r][c]; whiteCount++; }
-      if (b[r][c] === -1) { score -= OTH_WEIGHTS[r][c]; blackCount++; }
-    }
-  // Mobility
-  const wMob = othGetLegal(b, 1).length;
-  const bMob = othGetLegal(b, -1).length;
-  score += (wMob - bMob) * 5;
-  return score;
-}
-
-function othAlphaBeta(b, depth, alpha, beta, maximizing) {
-  const color = maximizing ? 1 : -1;
-  const legal = othGetLegal(b, color);
-  if (depth === 0 || (!legal.length && !othGetLegal(b, -color).length))
-    return { score: othEvaluate(b) };
-  if (!legal.length) return othAlphaBeta(b, depth-1, alpha, beta, !maximizing);
-  let best = { score: maximizing ? -Infinity : Infinity, move: null };
-  for (const [r,c] of legal) {
-    const nb = othCopyBoard(b);
-    othApplyMove(nb, r, c, color);
-    const res = othAlphaBeta(nb, depth-1, alpha, beta, !maximizing);
-    if (maximizing ? res.score > best.score : res.score < best.score)
-      best = { score: res.score, move: [r,c] };
-    if (maximizing) alpha = Math.max(alpha, best.score);
-    else beta = Math.min(beta, best.score);
-    if (beta <= alpha) break;
-  }
-  return best;
-}
-
-function othEndGame() {
-  othGameOver = true;
-  let black = 0, white = 0;
-  for (let r=0;r<OTH_SIZE;r++) for (let c=0;c<OTH_SIZE;c++) {
-    if (othBoard[r][c]===-1) black++;
-    if (othBoard[r][c]===1) white++;
-  }
-  let msg;
-  if (black > white) { msg = `🎉 あなたの勝ち！ (⚫${black} vs ⚪${white})`; othWins.w++; }
-  else if (white > black) { msg = `🤖 AIの勝ち (⚫${black} vs ⚪${white})`; othWins.l++; }
-  else { msg = `🤝 引き分け！ (${black} vs ${white})`; othWins.d++; }
-  document.getElementById('oth-status').textContent = msg;
-  localStorage.setItem('oth-wl', JSON.stringify(othWins));
-  othUpdateWLDisplay();
-}
-
-function othUpdateWLDisplay() {
-  document.getElementById('oth-wl').textContent = `${othWins.w}W ${othWins.l}L ${othWins.d}D`;
-}
-/* =============================================
-   GAME 3: CONNECT FOUR (ALPHA-BETA AI)
-   ============================================= */
-const C4_ROWS = 6, C4_COLS = 7;
-let c4Board, c4Current, c4GameOver;
-let c4Scores = JSON.parse(localStorage.getItem('c4-scores') || '{"p":0,"d":0,"a":0}');
-
-function c4Init() {
-  c4UpdateScoreDisplay();
-  c4NewGame();
-}
-
-function c4NewGame() {
-  c4Board = Array.from({length: C4_ROWS}, () => Array(C4_COLS).fill(0));
-  c4Current = 1; // 1=player(red), 2=AI(yellow)
-  c4GameOver = false;
-  c4Render();
-  document.getElementById('c4-status').textContent = 'あなたの番 🔴';
-}
-
-function c4Render() {
-  // Column buttons
-  const btnArea = document.getElementById('c4-col-btns');
-  btnArea.innerHTML = '';
-  for (let c = 0; c < C4_COLS; c++) {
-    const btn = document.createElement('button');
-    btn.className = 'c4-col-btn';
-    btn.textContent = '▼';
-    btn.disabled = c4GameOver || c4Current !== 1;
-    btn.onclick = () => c4PlayerMove(c);
-    btnArea.appendChild(btn);
-  }
-  // Board
-  const board = document.getElementById('c4-board');
-  board.innerHTML = '';
-  for (let r = 0; r < C4_ROWS; r++) {
-    for (let c = 0; c < C4_COLS; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'c4-cell';
-      if (c4Board[r][c] === 1) cell.classList.add('p1');
-      else if (c4Board[r][c] === 2) cell.classList.add('p2');
-      board.appendChild(cell);
-    }
-  }
-}
-
-function c4Drop(col, player) {
-  for (let r = C4_ROWS - 1; r >= 0; r--) {
-    if (c4Board[r][col] === 0) { c4Board[r][col] = player; return r; }
-  }
-  return -1;
-}
-
-function c4PlayerMove(col) {
-  if (c4GameOver || c4Current !== 1) return;
-  if (c4Board[0][col] !== 0) return;
-  const row = c4Drop(col, 1);
-  const win = c4CheckWin(c4Board, row, col, 1);
-  c4Render();
-  if (win) { c4EndGame(1, win); return; }
-  if (c4IsFull()) { c4EndGame(0); return; }
-  c4Current = 2;
-  document.getElementById('c4-status').textContent = 'AIが考え中... 🟡';
-  c4Render();
-  setTimeout(() => {
-    const bestCol = c4BestMove();
-    const aiRow = c4Drop(bestCol, 2);
-    const aiWin = c4CheckWin(c4Board, aiRow, bestCol, 2);
-    c4Render();
-    if (aiWin) { c4EndGame(2, aiWin); return; }
-    if (c4IsFull()) { c4EndGame(0); return; }
-    c4Current = 1;
-    document.getElementById('c4-status').textContent = 'あなたの番 🔴';
-    c4Render();
-  }, 300);
-}
-
-function c4IsFull() {
-  return c4Board[0].every(v => v !== 0);
-}
-
-function c4CheckWin(b, row, col, player) {
-  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
-  for (const [dr,dc] of dirs) {
-    const line = [[row,col]];
-    for (let d = 1; d <= 3; d++) {
-      const nr = row+dr*d, nc = col+dc*d;
-      if (nr>=0&&nr<C4_ROWS&&nc>=0&&nc<C4_COLS&&b[nr][nc]===player) line.push([nr,nc]);
-      else break;
-    }
-    for (let d = 1; d <= 3; d++) {
-      const nr = row-dr*d, nc = col-dc*d;
-      if (nr>=0&&nr<C4_ROWS&&nc>=0&&nc<C4_COLS&&b[nr][nc]===player) line.push([nr,nc]);
-      else break;
-    }
-    if (line.length >= 4) return line;
-  }
-  return null;
-}
-
-function c4ScoreWindow(window, player) {
-  const opp = player === 2 ? 1 : 2;
-  const pCount = window.filter(v => v === player).length;
-  const eCount = window.filter(v => v === 0).length;
-  const oCount = window.filter(v => v === opp).length;
-  if (oCount > 0) return 0;
-  if (pCount === 4) return 100;
-  if (pCount === 3 && eCount === 1) return 5;
-  if (pCount === 2 && eCount === 2) return 2;
-  return 0;
-}
-
-function c4Heuristic(b, player) {
-  const opp = player === 2 ? 1 : 2;
-  let score = 0;
-  // Center column preference
-  const center = b.map(r => r[Math.floor(C4_COLS/2)]).filter(v => v === player).length;
-  score += center * 3;
-  // Horizontal
-  for (let r = 0; r < C4_ROWS; r++)
-    for (let c = 0; c <= C4_COLS-4; c++) {
-      const w = [b[r][c],b[r][c+1],b[r][c+2],b[r][c+3]];
-      score += c4ScoreWindow(w, player) - c4ScoreWindow(w, opp) * 2;
-    }
-  // Vertical
-  for (let c = 0; c < C4_COLS; c++)
-    for (let r = 0; r <= C4_ROWS-4; r++) {
-      const w = [b[r][c],b[r+1][c],b[r+2][c],b[r+3][c]];
-      score += c4ScoreWindow(w, player) - c4ScoreWindow(w, opp) * 2;
-    }
-  // Diagonals
-  for (let r = 0; r <= C4_ROWS-4; r++)
-    for (let c = 0; c <= C4_COLS-4; c++) {
-      const w1 = [b[r][c],b[r+1][c+1],b[r+2][c+2],b[r+3][c+3]];
-      const w2 = [b[r+3][c],b[r+2][c+1],b[r+1][c+2],b[r][c+3]];
-      score += c4ScoreWindow(w1, player) - c4ScoreWindow(w1, opp) * 2;
-      score += c4ScoreWindow(w2, player) - c4ScoreWindow(w2, opp) * 2;
-    }
-  return score;
-}
-
-function c4IsTerminal(b) {
-  if (c4IsFull()) return true;
-  for (let r = 0; r < C4_ROWS; r++)
-    for (let c = 0; c < C4_COLS; c++)
-      if (b[r][c] !== 0) {
-        if (c4CheckWin(b, r, c, b[r][c])) return true;
-      }
-  return false;
-}
-
-function c4Minimax(b, depth, alpha, beta, maximizing) {
-  // Quick win check for last player
-  for (let r = 0; r < C4_ROWS; r++)
-    for (let c = 0; c < C4_COLS; c++)
-      if (b[r][c] !== 0 && c4CheckWin(b, r, c, b[r][c]))
-        return { score: b[r][c] === 2 ? 100000 + depth : -100000 - depth };
-
-  const validCols = [];
-  for (let c = 0; c < C4_COLS; c++) if (b[0][c] === 0) validCols.push(c);
-  if (!validCols.length || depth === 0)
-    return { score: c4Heuristic(b, 2) };
-
-  // Center-first ordering
-  validCols.sort((a,b) => Math.abs(a - 3) - Math.abs(b - 3));
-
-  let best = { score: maximizing ? -Infinity : Infinity, col: validCols[0] };
-  for (const col of validCols) {
-    let row = -1;
-    for (let r = C4_ROWS-1; r >= 0; r--) if (b[r][col] === 0) { row = r; break; }
-    b[row][col] = maximizing ? 2 : 1;
-    const res = c4Minimax(b, depth-1, alpha, beta, !maximizing);
-    b[row][col] = 0;
-    if (maximizing ? res.score > best.score : res.score < best.score)
-      best = { score: res.score, col };
-    if (maximizing) alpha = Math.max(alpha, best.score);
-    else beta = Math.min(beta, best.score);
-    if (beta <= alpha) break;
-  }
-  return best;
-}
-
-function c4BestMove() {
-  // Immediate win
-  for (let c = 0; c < C4_COLS; c++) {
-    if (c4Board[0][c] !== 0) continue;
-    let row = -1;
-    for (let r = C4_ROWS-1; r >= 0; r--) if (c4Board[r][c] === 0) { row = r; break; }
-    c4Board[row][c] = 2;
-    if (c4CheckWin(c4Board, row, c, 2)) { c4Board[row][c] = 0; return c; }
-    c4Board[row][c] = 0;
-  }
-  // Block player
-  for (let c = 0; c < C4_COLS; c++) {
-    if (c4Board[0][c] !== 0) continue;
-    let row = -1;
-    for (let r = C4_ROWS-1; r >= 0; r--) if (c4Board[r][c] === 0) { row = r; break; }
-    c4Board[row][c] = 1;
-    if (c4CheckWin(c4Board, row, c, 1)) { c4Board[row][c] = 0; return c; }
-    c4Board[row][c] = 0;
-  }
-  return c4Minimax(c4Board, 6, -Infinity, Infinity, true).col;
-}
-
-function c4EndGame(winner, winLine) {
-  c4GameOver = true;
-  if (winLine) {
-    const cells = document.getElementById('c4-board').children;
-    winLine.forEach(([r,c]) => cells[r*C4_COLS+c].classList.add('win'));
-  }
-  if (winner === 1) {
-    document.getElementById('c4-status').textContent = '🎉 あなたの勝ち！';
-    c4Scores.p++;
-  } else if (winner === 2) {
-    document.getElementById('c4-status').textContent = '🤖 AIの勝ち...';
-    c4Scores.a++;
-  } else {
-    document.getElementById('c4-status').textContent = '🤝 引き分け！';
-    c4Scores.d++;
-  }
-  localStorage.setItem('c4-scores', JSON.stringify(c4Scores));
-  c4UpdateScoreDisplay();
-  c4Render();
-}
-
-function c4UpdateScoreDisplay() {
-  document.getElementById('c4-score-p').textContent = c4Scores.p;
-  document.getElementById('c4-score-d').textContent = c4Scores.d;
-  document.getElementById('c4-score-a').textContent = c4Scores.a;
-}
-/* =============================================
-   GAME 4: DOTS & BOXES (SMART AI)
-   ============================================= */
-// Grid is DNB_N x DNB_N boxes (so (N+1)x(N+1) dots)
-const DNB_N = 4; // 4x4 boxes
-let dnbHLines, dnbVLines, dnbBoxes; // hLines[r][c]=owner, vLines[r][c]=owner, boxes[r][c]=owner
-let dnbCurrent, dnbGameOver;
-let dnbScoreP, dnbScoreA;
-
-function dnbInit() {
-  dnbNewGame();
-}
-
-function dnbNewGame() {
-  // hLines[r][c]: horizontal line between dot(r,c) and dot(r,c+1), r in 0..N, c in 0..N-1
-  dnbHLines = Array.from({length: DNB_N+1}, () => Array(DNB_N).fill(0));
-  // vLines[r][c]: vertical line between dot(r,c) and dot(r+1,c), r in 0..N-1, c in 0..N
-  dnbVLines = Array.from({length: DNB_N}, () => Array(DNB_N+1).fill(0));
-  dnbBoxes = Array.from({length: DNB_N}, () => Array(DNB_N).fill(0));
-  dnbCurrent = 1; // 1=player, 2=AI
-  dnbGameOver = false;
-  dnbScoreP = 0; dnbScoreA = 0;
-  document.getElementById('dnb-score-p').textContent = 0;
-  document.getElementById('dnb-score-a').textContent = 0;
-  document.getElementById('dnb-status').textContent = 'あなたの番 🟣';
-  dnbRender();
-}
-
-function dnbRender() {
-  const svg = document.getElementById('dnb-svg');
-  const size = svg.clientWidth || 360;
-  const pad = 30, step = (size - pad*2) / DNB_N;
-  svg.innerHTML = '';
-  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
-
-  // Draw boxes
-  for (let r = 0; r < DNB_N; r++) {
-    for (let c = 0; c < DNB_N; c++) {
-      if (dnbBoxes[r][c] !== 0) {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-        rect.setAttribute('x', pad + c*step + 2);
-        rect.setAttribute('y', pad + r*step + 2);
-        rect.setAttribute('width', step - 4);
-        rect.setAttribute('height', step - 4);
-        rect.setAttribute('rx', 4);
-        rect.className.baseVal = dnbBoxes[r][c] === 1 ? 'p1-box' : 'p2-box';
-        // Box score label
-        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-        text.setAttribute('x', pad + c*step + step/2);
-        text.setAttribute('y', pad + r*step + step/2 + 5);
-        text.setAttribute('text-anchor','middle');
-        text.setAttribute('font-size','14');
-        text.setAttribute('fill', dnbBoxes[r][c] === 1 ? '#f472b6' : '#00d4ff');
-        text.setAttribute('font-weight','bold');
-        text.textContent = dnbBoxes[r][c] === 1 ? '●' : '●';
-        svg.appendChild(rect);
-        svg.appendChild(text);
-      }
-    }
-  }
-
-  // Draw horizontal lines
-  for (let r = 0; r <= DNB_N; r++) {
-    for (let c = 0; c < DNB_N; c++) {
-      const x1 = pad + c*step, y1 = pad + r*step;
-      const x2 = pad + (c+1)*step, y2 = y1;
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-      line.setAttribute('stroke-width', dnbHLines[r][c] ? 5 : 3);
-      if (dnbHLines[r][c] === 1) line.className.baseVal = 'p1-line';
-      else if (dnbHLines[r][c] === 2) line.className.baseVal = 'p2-line';
-      else {
-        line.className.baseVal = 'available';
-        line.style.cursor = 'pointer';
-        line.style.stroke = '#334155';
-        if (!dnbGameOver && dnbCurrent === 1) {
-          line.addEventListener('mouseenter', () => line.style.stroke='#00d4ff');
-          line.addEventListener('mouseleave', () => line.style.stroke='#334155');
-          line.addEventListener('click', () => dnbPlayerMove('h', r, c));
-        }
-      }
-      svg.appendChild(line);
-    }
-  }
-
-  // Draw vertical lines
-  for (let r = 0; r < DNB_N; r++) {
-    for (let c = 0; c <= DNB_N; c++) {
-      const x1 = pad + c*step, y1 = pad + r*step;
-      const x2 = x1, y2 = pad + (r+1)*step;
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-      line.setAttribute('stroke-width', dnbVLines[r][c] ? 5 : 3);
-      if (dnbVLines[r][c] === 1) line.className.baseVal = 'p1-line';
-      else if (dnbVLines[r][c] === 2) line.className.baseVal = 'p2-line';
-      else {
-        line.className.baseVal = 'available';
-        line.style.cursor = 'pointer';
-        line.style.stroke = '#334155';
-        if (!dnbGameOver && dnbCurrent === 1) {
-          line.addEventListener('mouseenter', () => line.style.stroke='#00d4ff');
-          line.addEventListener('mouseleave', () => line.style.stroke='#334155');
-          line.addEventListener('click', () => dnbPlayerMove('v', r, c));
-        }
-      }
-      svg.appendChild(line);
-    }
-  }
-
-  // Draw dots
-  for (let r = 0; r <= DNB_N; r++) {
-    for (let c = 0; c <= DNB_N; c++) {
-      const cx = pad + c*step, cy = pad + r*step;
-      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', 5);
-      svg.appendChild(dot);
-    }
-  }
-}
-
-// Returns number of boxes completed by placing a line
-function dnbCountCompleted(hL, vL, bx, type, r, c, player) {
-  let count = 0;
-  const completed = [];
-  if (type === 'h') {
-    // Check box above (r-1, c) and below (r, c)
-    if (r > 0 && dnbBoxSides(hL, vL, r-1, c) === 3) { bx[r-1][c] = player; count++; completed.push([r-1,c]); }
-    if (r < DNB_N && dnbBoxSides(hL, vL, r, c) === 3) { bx[r][c] = player; count++; completed.push([r,c]); }
-  } else {
-    // Check box left (r, c-1) and right (r, c)
-    if (c > 0 && dnbBoxSides(hL, vL, r, c-1) === 3) { bx[r][c-1] = player; count++; completed.push([r,c-1]); }
-    if (c < DNB_N && dnbBoxSides(hL, vL, r, c) === 3) { bx[r][c] = player; count++; completed.push([r,c]); }
-  }
-  return count;
-}
-
-// Count filled sides of box at (r,c)
-function dnbBoxSides(hL, vL, r, c) {
-  let s = 0;
-  if (hL[r][c]) s++;   // top
-  if (hL[r+1][c]) s++; // bottom
-  if (vL[r][c]) s++;   // left
-  if (vL[r][c+1]) s++; // right
-  return s;
-}
-
-function dnbGetAllMoves() {
-  const moves = [];
-  for (let r = 0; r <= DNB_N; r++)
-    for (let c = 0; c < DNB_N; c++)
-      if (!dnbHLines[r][c]) moves.push(['h',r,c]);
-  for (let r = 0; r < DNB_N; r++)
-    for (let c = 0; c <= DNB_N; c++)
-      if (!dnbVLines[r][c]) moves.push(['v',r,c]);
-  return moves;
-}
-
-function dnbApplyMove(hL, vL, bx, type, r, c, player) {
-  if (type === 'h') hL[r][c] = player;
-  else vL[r][c] = player;
-  return dnbCountCompleted(hL, vL, bx, type, r, c, player);
-}
-
-function dnbPlayerMove(type, r, c) {
-  if (dnbGameOver || dnbCurrent !== 1) return;
-  if (type === 'h' ? dnbHLines[r][c] : dnbVLines[r][c]) return;
-  const completed = dnbApplyMove(dnbHLines, dnbVLines, dnbBoxes, type, r, c, 1);
-  dnbScoreP += completed;
-  document.getElementById('dnb-score-p').textContent = dnbScoreP;
-  dnbRender();
-  if (dnbCheckEnd()) return;
-  if (completed > 0) {
-    document.getElementById('dnb-status').textContent = `あなたがボックスを獲得！もう1手どうぞ 🟣`;
-    return; // player gets another turn
-  }
-  dnbCurrent = 2;
-  document.getElementById('dnb-status').textContent = 'AIが考え中... 🔵';
-  setTimeout(dnbAITurn, 350);
-}
-
-function dnbAITurn() {
-  if (dnbGameOver) return;
-  let madeBox = true;
-  while (madeBox) {
-    const move = dnbAIPickMove();
-    if (!move) break;
-    const [type, r, c] = move;
-    const completed = dnbApplyMove(dnbHLines, dnbVLines, dnbBoxes, type, r, c, 2);
-    dnbScoreA += completed;
-    document.getElementById('dnb-score-a').textContent = dnbScoreA;
-    dnbRender();
-    if (dnbCheckEnd()) return;
-    madeBox = completed > 0;
-  }
-  dnbCurrent = 1;
-  document.getElementById('dnb-status').textContent = 'あなたの番 🟣';
-  dnbRender();
-}
-
-function dnbAIPickMove() {
-  const moves = dnbGetAllMoves();
-  if (!moves.length) return null;
-
-  // Priority 1: complete a box immediately
-  for (const [type, r, c] of moves) {
-    const hL = dnbHLines.map(row => [...row]);
-    const vL = dnbVLines.map(row => [...row]);
-    const bx = dnbBoxes.map(row => [...row]);
-    if (type === 'h') hL[r][c] = 2; else vL[r][c] = 2;
-    if (dnbCountCompleted(hL, vL, bx, type, r, c, 2) > 0) return [type, r, c];
-  }
-
-  // Priority 2: avoid giving opponent a 3-sided box (chain analysis)
-  const safeMoves = moves.filter(([type, r, c]) => {
-    const hL = dnbHLines.map(row => [...row]);
-    const vL = dnbVLines.map(row => [...row]);
-    if (type === 'h') hL[r][c] = 2; else vL[r][c] = 2;
-    // Check if this creates a 3-sided box for opponent
-    let giveaway = 0;
-    for (let br = 0; br < DNB_N; br++)
-      for (let bc = 0; bc < DNB_N; bc++)
-        if (!dnbBoxes[br][bc] && dnbBoxSides(hL, vL, br, bc) === 3) giveaway++;
-    return giveaway === 0;
-  });
-
-  if (safeMoves.length > 0) {
-    // Among safe moves, prefer ones that create 2-sided boxes (setup)
-    const twoSided = safeMoves.filter(([type, r, c]) => {
-      const hL = dnbHLines.map(row => [...row]);
-      const vL = dnbVLines.map(row => [...row]);
-      if (type === 'h') hL[r][c] = 2; else vL[r][c] = 2;
-      let two = 0;
-      for (let br = 0; br < DNB_N; br++)
-        for (let bc = 0; bc < DNB_N; bc++)
-          if (!dnbBoxes[br][bc] && dnbBoxSides(hL, vL, br, bc) === 2) two++;
-      return two > 0;
-    });
-    const pool = twoSided.length ? twoSided : safeMoves;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  // Forced: pick the move that gives away fewest boxes
-  let bestMove = moves[0], bestGive = Infinity;
-  for (const [type, r, c] of moves) {
-    const hL = dnbHLines.map(row => [...row]);
-    const vL = dnbVLines.map(row => [...row]);
-    if (type === 'h') hL[r][c] = 2; else vL[r][c] = 2;
-    let giveaway = 0;
-    for (let br = 0; br < DNB_N; br++)
-      for (let bc = 0; bc < DNB_N; bc++)
-        if (!dnbBoxes[br][bc] && dnbBoxSides(hL, vL, br, bc) === 3) giveaway++;
-    if (giveaway < bestGive) { bestGive = giveaway; bestMove = [type, r, c]; }
-  }
-  return bestMove;
-}
-
-function dnbCheckEnd() {
-  const total = dnbScoreP + dnbScoreA;
-  if (total < DNB_N * DNB_N) return false;
-  dnbGameOver = true;
-  let msg;
-  if (dnbScoreP > dnbScoreA) msg = `🎉 あなたの勝ち！ (${dnbScoreP} vs ${dnbScoreA})`;
-  else if (dnbScoreA > dnbScoreP) msg = `🤖 AIの勝ち！ (${dnbScoreA} vs ${dnbScoreP})`;
-  else msg = `🤝 引き分け！ (${dnbScoreP} vs ${dnbScoreA})`;
-  document.getElementById('dnb-status').textContent = msg;
-  dnbRender();
-  return true;
-}
-/* =============================================
-   GAME 5: 2048
-   ============================================= */
-let g2048Grid, g2048Score, g2048Best, g2048Over, g2048Won;
-let g2048TouchStartX, g2048TouchStartY;
-
-function g2048Init() {
-  g2048Best = parseInt(localStorage.getItem('2048-best') || '0');
-  document.getElementById('g2048-best').textContent = g2048Best;
-  g2048NewGame();
-}
-
-function g2048NewGame() {
-  g2048Grid = Array.from({length:4}, () => Array(4).fill(0));
-  g2048Score = 0;
-  g2048Over = false;
-  g2048Won = false;
-  g2048AddTile();
-  g2048AddTile();
-  g2048Render();
-  document.getElementById('g2048-msg').textContent = '';
-  document.getElementById('g2048-score').textContent = 0;
-}
-
-function g2048AddTile() {
-  const empties = [];
-  for (let r=0;r<4;r++) for (let c=0;c<4;c++) if (!g2048Grid[r][c]) empties.push([r,c]);
-  if (!empties.length) return;
-  const [r,c] = empties[Math.floor(Math.random()*empties.length)];
-  g2048Grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-}
-
-function g2048Render() {
-  const board = document.getElementById('g2048-board');
-  board.innerHTML = '';
-  for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
-    const tile = document.createElement('div');
-    const v = g2048Grid[r][c];
-    tile.className = 't2048';
-    tile.dataset.v = v;
-    tile.textContent = v || '';
-    board.appendChild(tile);
-  }
-  document.getElementById('g2048-score').textContent = g2048Score;
-  if (g2048Score > g2048Best) {
-    g2048Best = g2048Score;
-    localStorage.setItem('2048-best', g2048Best);
-    document.getElementById('g2048-best').textContent = g2048Best;
-  }
-}
-
-function g2048SlideRow(row) {
-  let arr = row.filter(v => v !== 0);
-  let merged = false, score = 0;
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (!merged && arr[i] === arr[i+1]) {
-      arr[i] *= 2; score += arr[i];
-      arr.splice(i+1, 1); merged = true;
-    } else merged = false;
-  }
-  while (arr.length < 4) arr.push(0);
-  return { arr, score };
-}
-
-function g2048Move(dir) {
-  if (g2048Over) return;
-  let moved = false;
-  let totalScore = 0;
-  const grid = g2048Grid;
-
-  const getRow = (r) => [grid[r][0], grid[r][1], grid[r][2], grid[r][3]];
-  const getCol = (c) => [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
-
-  if (dir === 'left') {
-    for (let r=0;r<4;r++) {
-      const {arr, score} = g2048SlideRow(getRow(r));
-      if (arr.join() !== getRow(r).join()) moved = true;
-      for (let c=0;c<4;c++) grid[r][c] = arr[c];
-      totalScore += score;
-    }
-  } else if (dir === 'right') {
-    for (let r=0;r<4;r++) {
-      const {arr, score} = g2048SlideRow(getRow(r).reverse());
-      arr.reverse();
-      if (arr.join() !== getRow(r).join()) moved = true;
-      for (let c=0;c<4;c++) grid[r][c] = arr[c];
-      totalScore += score;
-    }
-  } else if (dir === 'up') {
-    for (let c=0;c<4;c++) {
-      const {arr, score} = g2048SlideRow(getCol(c));
-      if (arr.join() !== getCol(c).join()) moved = true;
-      for (let r=0;r<4;r++) grid[r][c] = arr[r];
-      totalScore += score;
-    }
-  } else if (dir === 'down') {
-    for (let c=0;c<4;c++) {
-      const {arr, score} = g2048SlideRow(getCol(c).reverse());
-      arr.reverse();
-      if (arr.join() !== getCol(c).join()) moved = true;
-      for (let r=0;r<4;r++) grid[r][c] = arr[r];
-      totalScore += score;
-    }
-  }
-
-  if (!moved) return;
-  g2048Score += totalScore;
-  g2048AddTile();
-  g2048Render();
-
-  // Check 2048
-  if (!g2048Won) {
-    for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
-      if (grid[r][c] >= 2048) {
-        g2048Won = true;
-        document.getElementById('g2048-msg').innerHTML = '<span style="color:#f59e0b">🎉 2048達成！続けて遊べます</span>';
-      }
-    }
-  }
-  // Check game over
-  if (!g2048CanMove()) {
-    g2048Over = true;
-    document.getElementById('g2048-msg').innerHTML = '<span style="color:#f87171">💀 ゲームオーバー</span>';
-  }
-}
-
-function g2048CanMove() {
-  for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
-    if (!g2048Grid[r][c]) return true;
-    if (c<3 && g2048Grid[r][c]===g2048Grid[r][c+1]) return true;
-    if (r<3 && g2048Grid[r][c]===g2048Grid[r+1][c]) return true;
-  }
-  return false;
-}
-
-// Keyboard
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('game-g2048').classList.contains('active')) return;
-  const map = {'ArrowLeft':'left','ArrowRight':'right','ArrowUp':'up','ArrowDown':'down'};
-  if (map[e.key]) { e.preventDefault(); g2048Move(map[e.key]); }
-});
-
-// Touch swipe
-document.addEventListener('touchstart', e => {
-  if (!document.getElementById('game-g2048').classList.contains('active')) return;
-  g2048TouchStartX = e.touches[0].clientX;
-  g2048TouchStartY = e.touches[0].clientY;
-}, {passive: true});
-document.addEventListener('touchend', e => {
-  if (!document.getElementById('game-g2048').classList.contains('active')) return;
-  const dx = e.changedTouches[0].clientX - g2048TouchStartX;
-  const dy = e.changedTouches[0].clientY - g2048TouchStartY;
-  if (Math.abs(dx) > Math.abs(dy)) g2048Move(dx > 0 ? 'right' : 'left');
-  else g2048Move(dy > 0 ? 'down' : 'up');
-}, {passive: true});
-
-/* =============================================
-   GAME 6: TETRIS
-   ============================================= */
-const TET_COLS = 10, TET_ROWS = 20, TET_CELL = 20;
-const TET_COLORS = ['#000','#00d4ff','#f59e0b','#9333ea','#22c55e','#ef4444','#3b82f6','#f97316'];
-// Pieces: I O T S Z J L
-const TET_PIECES = [
-  [[1,1,1,1]],                          // I
-  [[2,2],[2,2]],                         // O
-  [[0,3,0],[3,3,3]],                     // T
-  [[0,4,4],[4,4,0]],                     // S
-  [[5,5,0],[0,5,5]],                     // Z
-  [[6,0,0],[6,6,6]],                     // J
-  [[0,0,7],[7,7,7]]                      // L
-];
-
-let tetBoard, tetCurrent, tetCurrentX, tetCurrentY;
-let tetHeld, tetHoldUsed, tetNext;
-let tetScore, tetLevel, tetLines, tetBest;
-let tetRunning, tetInterval, tetLockTimer;
-let tetGameOver;
-
-function tetInit() {
-  tetBest = parseInt(localStorage.getItem('tet-best') || '0');
-  document.getElementById('tet-best').textContent = tetBest;
-  // Ensure canvas size is correct (may not be set yet on first visit)
-  const c = document.getElementById('tetris-canvas');
-  if (c) { c.width = TET_COLS * TET_CELL; c.height = TET_ROWS * TET_CELL; }
-  tetReset();
-}
-
-function tetReset() {
-  tetBoard = Array.from({length: TET_ROWS}, () => Array(TET_COLS).fill(0));
-  tetScore = 0; tetLevel = 1; tetLines = 0;
-  tetHeld = null; tetHoldUsed = false;
-  tetNext = [tetRandPiece(), tetRandPiece(), tetRandPiece()];
-  tetGameOver = false;
-  if (tetInterval) { clearInterval(tetInterval); tetInterval = null; }
-  tetRunning = false;
-  document.getElementById('tet-start-btn').textContent = '▶ スタート';
-  document.getElementById('tet-score').textContent = 0;
-  document.getElementById('tet-level').textContent = 1;
-  document.getElementById('tet-lines').textContent = 0;
-  document.getElementById('tet-status').textContent = '▶ スタートを押してください';
-  tetSpawn();
-  tetDraw();
-  tetDrawNext();
-  tetDrawHold();
-}
-
-function tetRandPiece() {
-  return JSON.parse(JSON.stringify(TET_PIECES[Math.floor(Math.random() * TET_PIECES.length)]));
-}
-
-function tetSpawn() {
-  tetCurrent = tetNext.shift();
-  tetNext.push(tetRandPiece());
-  tetCurrentX = Math.floor((TET_COLS - tetCurrent[0].length) / 2);
-  tetCurrentY = 0;
-  tetHoldUsed = false;
-  if (tetCollide(tetCurrent, tetCurrentX, tetCurrentY)) {
-    tetGameOver = true;
-    tetRunning = false;
-    if (tetInterval) { clearInterval(tetInterval); tetInterval = null; }
-    document.getElementById('tet-start-btn').textContent = '▶ スタート';
-    document.getElementById('tet-status').textContent = '💀 ゲームオーバー！';
-    if (tetScore > tetBest) {
-      tetBest = tetScore;
-      localStorage.setItem('tet-best', tetBest);
-      document.getElementById('tet-best').textContent = tetBest;
-    }
-    tetDraw();
-  }
-}
-
-function tetStartStop() {
-  if (tetGameOver) { tetReset(); return; }
-  if (tetRunning) {
-    clearInterval(tetInterval); tetInterval = null;
-    tetRunning = false;
-    document.getElementById('tet-start-btn').textContent = '▶ 再開';
-    document.getElementById('tet-status').textContent = '⏸ 一時停止中';
-  } else {
-    tetRunning = true;
-    document.getElementById('tet-start-btn').textContent = '⏸ 一時停止';
-    document.getElementById('tet-status').textContent = '';
-    tetInterval = setInterval(tetTick, tetSpeed());
-  }
-}
-
-function tetSpeed() { return Math.max(80, 800 - (tetLevel - 1) * 70); }
-
-function tetTick() {
-  if (!tetMoveDown()) {
-    tetLock();
-    tetSpawn();
-    tetDrawNext();
-  }
-  tetDraw();
-}
-
-function tetMoveDown() {
-  if (!tetCollide(tetCurrent, tetCurrentX, tetCurrentY + 1)) {
-    tetCurrentY++; return true;
-  }
-  return false;
-}
-
-function tetCollide(piece, ox, oy) {
-  for (let r = 0; r < piece.length; r++)
-    for (let c = 0; c < piece[r].length; c++)
-      if (piece[r][c]) {
-        const nx = ox + c, ny = oy + r;
-        if (nx < 0 || nx >= TET_COLS || ny >= TET_ROWS) return true;
-        if (ny >= 0 && tetBoard[ny][nx]) return true;
-      }
-  return false;
-}
-
-function tetLock() {
-  for (let r = 0; r < tetCurrent.length; r++)
-    for (let c = 0; c < tetCurrent[r].length; c++)
-      if (tetCurrent[r][c] && tetCurrentY + r >= 0)
-        tetBoard[tetCurrentY + r][tetCurrentX + c] = tetCurrent[r][c];
-  tetClearLines();
-}
-
-function tetClearLines() {
-  let cleared = 0;
-  for (let r = TET_ROWS - 1; r >= 0; r--) {
-    if (tetBoard[r].every(v => v !== 0)) {
-      tetBoard.splice(r, 1);
-      tetBoard.unshift(Array(TET_COLS).fill(0));
-      cleared++; r++;
-    }
-  }
-  if (cleared) {
-    const pts = [0, 100, 300, 500, 800];
-    tetScore += (pts[cleared] || 800) * tetLevel;
-    tetLines += cleared;
-    tetLevel = Math.floor(tetLines / 10) + 1;
-    document.getElementById('tet-score').textContent = tetScore;
-    document.getElementById('tet-level').textContent = tetLevel;
-    document.getElementById('tet-lines').textContent = tetLines;
-    // Update speed
-    if (tetInterval) { clearInterval(tetInterval); tetInterval = setInterval(tetTick, tetSpeed()); }
-  }
-}
-
-function tetRotate(piece) {
-  const rows = piece.length, cols = piece[0].length;
-  const rotated = Array.from({length: cols}, () => Array(rows).fill(0));
-  for (let r = 0; r < rows; r++)
-    for (let c = 0; c < cols; c++)
-      rotated[c][rows - 1 - r] = piece[r][c];
-  return rotated;
-}
-
-function tetGhost() {
-  let gy = tetCurrentY;
-  while (!tetCollide(tetCurrent, tetCurrentX, gy + 1)) gy++;
-  return gy;
-}
-
-function tetDraw() {
-  const canvas = document.getElementById('tetris-canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0a0a1a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 0.5;
-  for (let r = 0; r < TET_ROWS; r++) { ctx.beginPath(); ctx.moveTo(0, r*TET_CELL); ctx.lineTo(TET_COLS*TET_CELL, r*TET_CELL); ctx.stroke(); }
-  for (let c = 0; c < TET_COLS; c++) { ctx.beginPath(); ctx.moveTo(c*TET_CELL, 0); ctx.lineTo(c*TET_CELL, TET_ROWS*TET_CELL); ctx.stroke(); }
-
-  // Locked pieces
-  for (let r = 0; r < TET_ROWS; r++)
-    for (let c = 0; c < TET_COLS; c++)
-      if (tetBoard[r][c]) tetDrawCell(ctx, c, r, TET_COLORS[tetBoard[r][c]]);
-
-  // Ghost piece
-  if (tetRunning && tetCurrent) {
-    const gy = tetGhost();
-    for (let r = 0; r < tetCurrent.length; r++)
-      for (let c = 0; c < tetCurrent[r].length; c++)
-        if (tetCurrent[r][c]) {
-          ctx.fillStyle = 'rgba(255,255,255,0.1)';
-          ctx.fillRect((tetCurrentX+c)*TET_CELL+1, (gy+r)*TET_CELL+1, TET_CELL-2, TET_CELL-2);
-        }
-  }
-
-  // Current piece
-  if (tetCurrent) {
-    for (let r = 0; r < tetCurrent.length; r++)
-      for (let c = 0; c < tetCurrent[r].length; c++)
-        if (tetCurrent[r][c]) tetDrawCell(ctx, tetCurrentX+c, tetCurrentY+r, TET_COLORS[tetCurrent[r][c]]);
-  }
-}
-
-function tetDrawCell(ctx, cx, cy, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(cx*TET_CELL+1, cy*TET_CELL+1, TET_CELL-2, TET_CELL-2);
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillRect(cx*TET_CELL+2, cy*TET_CELL+2, TET_CELL-4, 3);
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.fillRect(cx*TET_CELL+1, cy*TET_CELL+TET_CELL-4, TET_CELL-2, 3);
-}
-
-function tetDrawMini(canvas, piece) {
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0d0d1f';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (!piece) return;
-  const cell = 18;
-  const ox = Math.floor((canvas.width - piece[0].length * cell) / 2);
-  const oy = Math.floor((canvas.height - piece.length * cell) / 2);
-  for (let r = 0; r < piece.length; r++)
-    for (let c = 0; c < piece[r].length; c++)
-      if (piece[r][c]) {
-        ctx.fillStyle = TET_COLORS[piece[r][c]];
-        ctx.fillRect(ox+c*cell+1, oy+r*cell+1, cell-2, cell-2);
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.fillRect(ox+c*cell+2, oy+r*cell+2, cell-4, 3);
-      }
-}
-
-function tetDrawNext() {
-  const canvas = document.getElementById('tetris-next-canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0d0d1f';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const cell = 16;
-  tetNext.slice(0, 3).forEach((piece, i) => {
-    const ox = Math.floor((canvas.width - piece[0].length * cell) / 2);
-    const oy = 6 + i * 76;
-    for (let r = 0; r < piece.length; r++)
-      for (let c = 0; c < piece[r].length; c++)
-        if (piece[r][c]) {
-          ctx.fillStyle = TET_COLORS[piece[r][c]];
-          ctx.fillRect(ox+c*cell+1, oy+r*cell+1, cell-2, cell-2);
-          ctx.fillStyle = 'rgba(255,255,255,0.25)';
-          ctx.fillRect(ox+c*cell+2, oy+r*cell+2, cell-4, 3);
-        }
-  });
-}
-
-function tetDrawHold() {
-  tetDrawMini(document.getElementById('tetris-hold-canvas'), tetHeld);
-}
-
-function tetHold() {
-  if (!tetRunning || tetHoldUsed) return;
-  tetHoldUsed = true;
-  if (!tetHeld) {
-    tetHeld = tetCurrent;
-    tetSpawn();
-  } else {
-    const tmp = tetHeld;
-    tetHeld = tetCurrent;
-    tetCurrent = tmp;
-    tetCurrentX = Math.floor((TET_COLS - tetCurrent[0].length) / 2);
-    tetCurrentY = 0;
-  }
-  // Reset held piece rotation
-  tetHeld = JSON.parse(JSON.stringify(TET_PIECES[tetPieceId(tetHeld)]));
-  tetDrawHold();
-  tetDraw();
-}
-
-function tetPieceId(piece) {
-  // Match by color value
-  const v = piece.flat().find(v => v > 0);
-  return v - 1;
-}
-
-function tetKey(dir) {
-  if (!tetRunning || tetGameOver) return;
-  if (dir === 'left') {
-    if (!tetCollide(tetCurrent, tetCurrentX-1, tetCurrentY)) { tetCurrentX--; tetDraw(); }
-  } else if (dir === 'right') {
-    if (!tetCollide(tetCurrent, tetCurrentX+1, tetCurrentY)) { tetCurrentX++; tetDraw(); }
-  } else if (dir === 'down') {
-    if (!tetMoveDown()) { tetLock(); tetSpawn(); tetDrawNext(); }
-    tetDraw();
-  } else if (dir === 'up') {
-    const rotated = tetRotate(tetCurrent);
-    // Wall kick
-    for (const kick of [0, 1, -1, 2, -2]) {
-      if (!tetCollide(rotated, tetCurrentX+kick, tetCurrentY)) {
-        tetCurrent = rotated; tetCurrentX += kick; break;
-      }
-    }
-    tetDraw();
-  } else if (dir === 'space') {
-    tetCurrentY = tetGhost();
-    tetLock(); tetSpawn(); tetDrawNext(); tetDraw();
-  } else if (dir === 'hold') {
-    tetHold();
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('game-tetris').classList.contains('active')) return;
-  const map = { ArrowLeft:'left', ArrowRight:'right', ArrowDown:'down', ArrowUp:'up', ' ':'space', 'c':'hold', 'C':'hold' };
-  if (map[e.key]) { e.preventDefault(); tetKey(map[e.key]); }
-});
-
-/* =============================================
-   GAME 7: MINESWEEPER
-   ============================================= */
-const MS_ROWS = 9, MS_COLS = 9, MS_MINES = 10;
-let msBoard, msFlagCount, msRevealed, msGameOver, msStarted;
-let msTimerInterval, msTimeElapsed, msBestTime;
-
-function msInit() {
-  msBestTime = parseInt(localStorage.getItem('ms-best') || '0');
-  document.getElementById('ms-best').textContent = msBestTime ? msBestTime + 's' : '--';
-  msNewGame();
-}
-
-function msNewGame() {
-  if (msTimerInterval) { clearInterval(msTimerInterval); msTimerInterval = null; }
-  msBoard = Array.from({length: MS_ROWS}, () =>
-    Array.from({length: MS_COLS}, () => ({ mine: false, revealed: false, flagged: false, count: 0 }))
-  );
-  msFlagCount = 0;
-  msRevealed = 0;
-  msGameOver = false;
-  msStarted = false;
-  msTimeElapsed = 0;
-  document.getElementById('ms-mines').textContent = MS_MINES;
-  document.getElementById('ms-time').textContent = 0;
-  document.getElementById('ms-status').textContent = '🙂 地雷を避けてすべて開けよう！';
-  msRender();
-}
-
-function msPlaceMines(safeR, safeC) {
-  let placed = 0;
-  while (placed < MS_MINES) {
-    const r = Math.floor(Math.random() * MS_ROWS);
-    const c = Math.floor(Math.random() * MS_COLS);
-    if (msBoard[r][c].mine) continue;
-    if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
-    msBoard[r][c].mine = true;
-    placed++;
-  }
-  // Calculate counts
-  for (let r = 0; r < MS_ROWS; r++)
-    for (let c = 0; c < MS_COLS; c++) {
-      if (msBoard[r][c].mine) continue;
-      let cnt = 0;
-      for (let dr = -1; dr <= 1; dr++)
-        for (let dc = -1; dc <= 1; dc++) {
-          const nr = r+dr, nc = c+dc;
-          if (nr>=0&&nr<MS_ROWS&&nc>=0&&nc<MS_COLS&&msBoard[nr][nc].mine) cnt++;
-        }
-      msBoard[r][c].count = cnt;
-    }
-}
-
-function msReveal(r, c) {
-  const cell = msBoard[r][c];
-  if (cell.revealed || cell.flagged) return;
-  cell.revealed = true;
-  msRevealed++;
-  if (cell.count === 0 && !cell.mine) {
-    for (let dr = -1; dr <= 1; dr++)
-      for (let dc = -1; dc <= 1; dc++) {
-        const nr = r+dr, nc = c+dc;
-        if (nr>=0&&nr<MS_ROWS&&nc>=0&&nc<MS_COLS) msReveal(nr, nc);
-      }
-  }
-}
-
-function msClick(r, c) {
-  if (msGameOver || msBoard[r][c].flagged || msBoard[r][c].revealed) return;
-  if (!msStarted) {
-    msStarted = true;
-    msPlaceMines(r, c);
-    msTimerInterval = setInterval(() => {
-      msTimeElapsed++;
-      document.getElementById('ms-time').textContent = msTimeElapsed;
-    }, 1000);
-  }
-  if (msBoard[r][c].mine) {
-    msBoard[r][c].revealed = true;
-    msEndGame(false, r, c);
+  if(p.role==='seer'){
+    const done=G.seerResults.filter(r=>r.by===p.name);
+    const logHtml=done.length
+      ? `<div class="card" style="margin:8px 0">${done.map(r=>`<div class="row"><span>${e(r.name)}</span><span class="tag ${r.result==='wolf'?'red':'ok'}">${r.result==='wolf'?'🐺 人狼':'✓ 白'}</span></div>`).join('')}</div>`
+      :'';
+    renderPickTarget('🔮 占い師 — 占う相手を選ぶ',others,'占う','vio',id=>{
+      const t=G.players[id];
+      const isW=t.role==='wolf';
+      G.seerResults.push({id:t.id,name:t.name,result:isW?'wolf':'white',night:G.night,by:p.name});
+      R(`<div class="screen night-screen"><div class="center">
+        <div class="big-emoji">🔮</div>
+        <div class="night-title">${e(t.name)} さんは…</div>
+        <div style="font-size:2.4rem;font-weight:900;margin:12px 0;color:${isW?'var(--red)':'var(--ok2)'}">
+          ${isW?'🐺 人狼です！':'✓ 人狼ではありません'}
+        </div>
+        <button class="btn btn-vio" style="max-width:280px;margin-top:24px" onclick="window._pg()">確認した。次へ →</button>
+      </div></div>`);
+      window._pg=next;
+    },logHtml);
     return;
   }
-  msReveal(r, c);
-  msRender();
-  const safe = MS_ROWS * MS_COLS - MS_MINES;
-  if (msRevealed >= safe) msEndGame(true);
-}
 
-function msFlag(r, c) {
-  if (msGameOver || msBoard[r][c].revealed) return;
-  const cell = msBoard[r][c];
-  if (cell.flagged) {
-    cell.flagged = false;
-    msFlagCount--;
-  } else if (msFlagCount < MS_MINES) {
-    cell.flagged = true;
-    msFlagCount++;
+  if(p.role==='knight'){
+    renderPickTarget('🛡️ 騎士 — 守る相手を選ぶ',others,'守る','ok',
+      id=>{G.actions.protect=id;next()});
+    return;
   }
-  document.getElementById('ms-mines').textContent = MS_MINES - msFlagCount;
-  msRender();
-}
 
-function msEndGame(win, hitR, hitC) {
-  msGameOver = true;
-  if (msTimerInterval) { clearInterval(msTimerInterval); msTimerInterval = null; }
-  // Reveal all mines
-  for (let r = 0; r < MS_ROWS; r++)
-    for (let c = 0; c < MS_COLS; c++)
-      if (msBoard[r][c].mine) msBoard[r][c].revealed = true;
-  msRender();
-  if (win) {
-    document.getElementById('ms-status').textContent = '🎉 クリア！おめでとう！';
-    if (!msBestTime || msTimeElapsed < msBestTime) {
-      msBestTime = msTimeElapsed;
-      localStorage.setItem('ms-best', msBestTime);
-      document.getElementById('ms-best').textContent = msBestTime + 's';
+  // wolf / spy
+  const isSpy=p.role==='spy';
+  const mate=G.players.find(x=>x.alive&&x.role===(isSpy?'wolf':'spy'));
+  // 3人ゲームは夜の襲撃なし
+  const is3p = G.players.length === 3;
+  const killTargets=(!is3p && p.role==='wolf')?others.filter(x=>x.role!=='spy'&&x.role!=='wolf'):[];
+  let selKill=null;
+
+  const chatHtml=()=>G.chat.map(m=>
+    `<div class="msg wolf-msg"><small>${e(m.from)} · 夜${m.n}</small>${e(m.text)}</div>`
+  ).join('')||'<div class="msg sys"><small>システム</small>まだ会話はありません…</div>';
+
+  const killHtml=killTargets.length
+    ?`<p class="sec-label">☠️ 今夜の襲撃対象</p>
+      <div class="player-list" id="kill-list">
+        ${killTargets.map(t=>`<div class="player-item" data-id="${t.id}" onclick="selKillFn(${t.id},this)"><div class="player-avatar">${AVATARS[t.id%10]}</div><span class="player-name">${e(t.name)}</span></div>`).join('')}
+      </div>`:'';
+
+  R(`<div class="screen night-screen">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(232,68,90,.2);margin-bottom:10px">
+      <span class="tag red">${RI[p.role]} ${RN[p.role]}の夜</span>
+      <span style="color:var(--dim);font-size:.84rem">夜${G.night}</span>
+    </div>
+    ${mate?`
+    <p class="sec-label">🔒 ${e(mate.name)} さんとの密談</p>
+    <div class="card" style="padding:12px">
+      <div class="chat-box" id="night-chat">${chatHtml()}</div>
+      <div class="send-row">
+        <input id="chat-inp" maxlength="60" placeholder="メッセージを送る…">
+        <button onclick="sendNightChat(${p.id},${mate.id})">送信</button>
+      </div>
+    </div>`:'<p style="color:var(--dim);font-size:.88rem">密談できる相手はいません</p>'}
+    ${killHtml}
+    <button class="btn btn-red" id="night-done" ${killTargets.length?'disabled':''} onclick="window._pg()">
+      ${p.role==='wolf'?'完了 →':'次へ →'}
+    </button>
+  </div>`);
+  scrollEl('night-chat');
+
+  window.selKillFn=(id,el)=>{
+    selKill=id;
+    qsa('#kill-list .player-item').forEach(x=>x.classList.toggle('on',x===el));
+    qs('#night-done').disabled=false;
+  };
+  window.sendNightChat=(fromId,toId)=>{
+    const inp=qs('#chat-inp');
+    const v=inp.value.trim();if(!v)return;
+    addNightChat(G.players[fromId].name,v);
+    if(G.players[toId]?.bot){
+      const reply=genBotNightChat(G.players[toId],G.players[fromId]);
+      if(reply) setTimeout(()=>{
+        addNightChat(G.players[toId].name,reply,'wolf');
+        const c=qs('#night-chat');
+        if(c){c.innerHTML=chatHtml();scrollEl('night-chat');}
+      },700+Math.random()*600);
     }
-    // Mark hit cell
-  } else {
-    document.getElementById('ms-status').textContent = '💥 地雷を踏んだ！ゲームオーバー';
-    // Highlight hit mine
-    if (hitR !== undefined) {
-      const cells = document.getElementById('ms-board').children;
-      cells[hitR * MS_COLS + hitC].classList.add('mine-hit');
-    }
-  }
-}
-
-function msRender() {
-  const board = document.getElementById('ms-board');
-  board.innerHTML = '';
-  for (let r = 0; r < MS_ROWS; r++) {
-    for (let c = 0; c < MS_COLS; c++) {
-      const cell = document.createElement('div');
-      const data = msBoard[r][c];
-      cell.className = 'ms-cell';
-      if (data.revealed) {
-        cell.classList.add('revealed');
-        if (data.mine) cell.textContent = '💣';
-        else if (data.count > 0) {
-          cell.textContent = data.count;
-          cell.classList.add('ms-' + data.count);
-        }
-      } else if (data.flagged) {
-        cell.classList.add('flagged');
-        cell.textContent = '🚩';
-      }
-      // Left click
-      cell.addEventListener('click', () => msClick(r, c));
-      // Right click (flag)
-      cell.addEventListener('contextmenu', e => { e.preventDefault(); msFlag(r, c); });
-      // Long press for mobile
-      let longPressTimer;
-      cell.addEventListener('touchstart', () => { longPressTimer = setTimeout(() => msFlag(r, c), 500); }, {passive:true});
-      cell.addEventListener('touchend', () => clearTimeout(longPressTimer), {passive:true});
-      cell.addEventListener('touchmove', () => clearTimeout(longPressTimer), {passive:true});
-      board.appendChild(cell);
-    }
-  }
-}
-/* =============================================
-   GAME 8: SNAKE
-   ============================================= */
-const SNAKE_GRID = 18, SNAKE_CELL = 20;
-let snakeBody, snakeDirX, snakeDirY, snakeNextDirX, snakeNextDirY;
-let snakeFood, snakeScore, snakeBest;
-let snakeRunning, snakeInterval, snakeGameOver;
-let snakeTouchX, snakeTouchY;
-
-function snakeInit() {
-  snakeBest = parseInt(localStorage.getItem('snake-best') || '0');
-  document.getElementById('snake-best').textContent = snakeBest;
-  const c = document.getElementById('snake-canvas');
-  if (c) { c.width = SNAKE_GRID * SNAKE_CELL; c.height = SNAKE_GRID * SNAKE_CELL; }
-  snakeReset();
-}
-
-function snakeReset() {
-  if (snakeInterval) { clearInterval(snakeInterval); snakeInterval = null; }
-  const mid = Math.floor(SNAKE_GRID / 2);
-  snakeBody = [{x: mid, y: mid}, {x: mid-1, y: mid}, {x: mid-2, y: mid}];
-  snakeDirX = 1; snakeDirY = 0;
-  snakeNextDirX = 1; snakeNextDirY = 0;
-  snakeScore = 0; snakeGameOver = false; snakeRunning = false;
-  snakePlaceFood();
-  document.getElementById('snake-score').textContent = 0;
-  document.getElementById('snake-status').textContent = '▶ スタートを押してください';
-  document.getElementById('snake-start-btn').textContent = '▶ スタート';
-  snakeDraw();
-}
-
-function snakePlaceFood() {
-  const occupied = new Set(snakeBody.map(s => `${s.x},${s.y}`));
-  let x, y;
-  do { x = Math.floor(Math.random()*SNAKE_GRID); y = Math.floor(Math.random()*SNAKE_GRID); }
-  while (occupied.has(`${x},${y}`));
-  snakeFood = {x, y};
-}
-
-function snakeStartStop() {
-  if (snakeGameOver) { snakeReset(); return; }
-  if (snakeRunning) {
-    clearInterval(snakeInterval); snakeInterval = null;
-    snakeRunning = false;
-    document.getElementById('snake-start-btn').textContent = '▶ 再開';
-    document.getElementById('snake-status').textContent = '⏸ 一時停止中';
-  } else {
-    snakeRunning = true;
-    document.getElementById('snake-start-btn').textContent = '⏸ 一時停止';
-    document.getElementById('snake-status').textContent = '';
-    snakeInterval = setInterval(snakeTick, 130);
-  }
-}
-
-function snakeTick() {
-  snakeDirX = snakeNextDirX; snakeDirY = snakeNextDirY;
-  const head = { x: snakeBody[0].x + snakeDirX, y: snakeBody[0].y + snakeDirY };
-  // Wall collision
-  if (head.x < 0 || head.x >= SNAKE_GRID || head.y < 0 || head.y >= SNAKE_GRID) {
-    snakeOver(); return;
-  }
-  // Self collision
-  if (snakeBody.some(s => s.x === head.x && s.y === head.y)) {
-    snakeOver(); return;
-  }
-  snakeBody.unshift(head);
-  if (head.x === snakeFood.x && head.y === snakeFood.y) {
-    snakeScore++;
-    document.getElementById('snake-score').textContent = snakeScore;
-    if (snakeScore > snakeBest) {
-      snakeBest = snakeScore;
-      localStorage.setItem('snake-best', snakeBest);
-      document.getElementById('snake-best').textContent = snakeBest;
-    }
-    snakePlaceFood();
-    // Speed up every 5 food
-    if (snakeScore % 5 === 0) {
-      clearInterval(snakeInterval);
-      snakeInterval = setInterval(snakeTick, Math.max(60, 130 - snakeScore * 5));
-    }
-  } else {
-    snakeBody.pop();
-  }
-  snakeDraw();
-}
-
-function snakeOver() {
-  snakeRunning = false;
-  snakeGameOver = true;
-  clearInterval(snakeInterval); snakeInterval = null;
-  document.getElementById('snake-status').textContent = '💀 ゲームオーバー！';
-  document.getElementById('snake-start-btn').textContent = '▶ もう一度';
-  snakeDraw();
-}
-
-function snakeDir(dx, dy) {
-  // Prevent reversing
-  if (dx !== 0 && snakeDirX !== 0) return;
-  if (dy !== 0 && snakeDirY !== 0) return;
-  snakeNextDirX = dx; snakeNextDirY = dy;
-}
-
-function snakeDraw() {
-  const canvas = document.getElementById('snake-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = SNAKE_GRID * SNAKE_CELL;
-  ctx.fillStyle = '#0a1628';
-  ctx.fillRect(0, 0, W, W);
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-  ctx.lineWidth = 0.5;
-  for (let i = 0; i <= SNAKE_GRID; i++) {
-    ctx.beginPath(); ctx.moveTo(i*SNAKE_CELL,0); ctx.lineTo(i*SNAKE_CELL,W); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,i*SNAKE_CELL); ctx.lineTo(W,i*SNAKE_CELL); ctx.stroke();
-  }
-  // Food
-  const fx = snakeFood.x * SNAKE_CELL, fy = snakeFood.y * SNAKE_CELL;
-  ctx.fillStyle = '#ef4444';
-  ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 10;
-  ctx.beginPath();
-  ctx.arc(fx+SNAKE_CELL/2, fy+SNAKE_CELL/2, SNAKE_CELL/2-2, 0, Math.PI*2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  // Snake
-  snakeBody.forEach((seg, i) => {
-    const sx = seg.x * SNAKE_CELL, sy = seg.y * SNAKE_CELL;
-    const t = i === 0 ? 1 : Math.max(0.4, 1 - i / snakeBody.length);
-    ctx.fillStyle = i === 0
-      ? '#00ff88'
-      : `rgba(0,${Math.floor(200*t+55)},${Math.floor(80*t)},${t})`;
-    ctx.shadowColor = i === 0 ? '#00ff88' : 'transparent';
-    ctx.shadowBlur = i === 0 ? 8 : 0;
-    const pad = i === 0 ? 1 : 2;
-    ctx.beginPath();
-    ctx.roundRect(sx+pad, sy+pad, SNAKE_CELL-pad*2, SNAKE_CELL-pad*2, 4);
-    ctx.fill();
-  });
-  ctx.shadowBlur = 0;
-  // Eyes on head
-  if (snakeBody.length) {
-    const hx = snakeBody[0].x*SNAKE_CELL, hy = snakeBody[0].y*SNAKE_CELL;
-    ctx.fillStyle = '#0a1628';
-    const offsets = snakeDirX===1?[[12,5],[12,13]]:snakeDirX===-1?[[6,5],[6,13]]:snakeDirY===1?[[5,13],[13,13]]:[[5,5],[13,5]];
-    offsets.forEach(([ox,oy]) => { ctx.beginPath(); ctx.arc(hx+ox,hy+oy,2.5,0,Math.PI*2); ctx.fill(); });
-  }
-}
-
-// Keyboard for snake
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('game-snake').classList.contains('active')) return;
-  const map = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
-  if (map[e.key]) { e.preventDefault(); snakeDir(...map[e.key]); }
-});
-// Touch swipe for snake
-document.addEventListener('touchstart', e => {
-  if (!document.getElementById('game-snake').classList.contains('active')) return;
-  snakeTouchX = e.touches[0].clientX; snakeTouchY = e.touches[0].clientY;
-}, {passive:true});
-document.addEventListener('touchend', e => {
-  if (!document.getElementById('game-snake').classList.contains('active')) return;
-  const dx = e.changedTouches[0].clientX - snakeTouchX;
-  const dy = e.changedTouches[0].clientY - snakeTouchY;
-  if (Math.abs(dx) > Math.abs(dy)) snakeDir(dx>0?1:-1, 0);
-  else snakeDir(0, dy>0?1:-1);
-}, {passive:true});
-/* =============================================
-   GAME 9: BREAKOUT
-   ============================================= */
-const BO_W = 420, BO_H = 340;
-const BO_BRICK_COLS = 10, BO_BRICK_ROWS = 5;
-const BO_BRICK_W = 36, BO_BRICK_H = 14, BO_BRICK_GAD_X = 4, BO_BRICK_GAD_Y = 4;
-const BO_BRICK_OFF_X = 12, BO_BRICK_OFF_Y = 30;
-const BO_PADDLE_H = 10, BO_PADDLE_SPEED = 6;
-const BO_BRICK_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'];
-
-let boBricks, boPaddleX, boPaddleW;
-let boBallX, boBallY, boBallDX, boBallDY, boBallR;
-let boScore, boLives, boBest;
-let boRunning, boAnimId, boGameOver, boWon;
-let boMouseX = BO_W / 2;
-
-function boInit() {
-  boBest = parseInt(localStorage.getItem('bo-best') || '0');
-  document.getElementById('bo-best').textContent = boBest;
-  boReset();
-}
-
-function boReset() {
-  if (boAnimId) { cancelAnimationFrame(boAnimId); boAnimId = null; }
-  boRunning = false; boGameOver = false; boWon = false;
-  boPaddleW = 70; boPaddleX = BO_W/2 - boPaddleW/2;
-  boBallR = 7; boBallX = BO_W/2; boBallY = BO_H - 50;
-  boBallDX = 3.2; boBallDY = -3.5;
-  boScore = 0; boLives = 3;
-  document.getElementById('bo-score').textContent = 0;
-  document.getElementById('bo-lives').textContent = 3;
-  document.getElementById('bo-status').textContent = '▶ スタートを押してください';
-  document.getElementById('bo-start-btn').textContent = '▶ スタート';
-  // Build bricks
-  boBricks = [];
-  for (let r = 0; r < BO_BRICK_ROWS; r++)
-    for (let c = 0; c < BO_BRICK_COLS; c++)
-      boBricks.push({ x: BO_BRICK_OFF_X + c*(BO_BRICK_W+BO_BRICK_GAD_X), y: BO_BRICK_OFF_Y + r*(BO_BRICK_H+BO_BRICK_GAD_Y), alive: true, row: r });
-  boDraw();
-}
-
-function boStartStop() {
-  if (boGameOver || boWon) { boReset(); return; }
-  if (boRunning) {
-    cancelAnimationFrame(boAnimId); boAnimId = null;
-    boRunning = false;
-    document.getElementById('bo-start-btn').textContent = '▶ 再開';
-    document.getElementById('bo-status').textContent = '⏸ 一時停止中';
-  } else {
-    boRunning = true;
-    document.getElementById('bo-start-btn').textContent = '⏸ 一時停止';
-    document.getElementById('bo-status').textContent = '';
-    boLoop();
-  }
-}
-
-function boLoop() {
-  boUpdate();
-  boDraw();
-  if (boRunning) boAnimId = requestAnimationFrame(boLoop);
-}
-
-function boUpdate() {
-  // Move ball
-  boBallX += boBallDX; boBallY += boBallDY;
-  // Wall collisions
-  if (boBallX - boBallR < 0) { boBallX = boBallR; boBallDX = Math.abs(boBallDX); }
-  if (boBallX + boBallR > BO_W) { boBallX = BO_W - boBallR; boBallDX = -Math.abs(boBallDX); }
-  if (boBallY - boBallR < 0) { boBallY = boBallR; boBallDY = Math.abs(boBallDY); }
-  // Paddle collision
-  const paddleY = BO_H - 20;
-  if (boBallY + boBallR >= paddleY && boBallY + boBallR <= paddleY + BO_PADDLE_H &&
-      boBallX >= boPaddleX - 4 && boBallX <= boPaddleX + boPaddleW + 4) {
-    boBallDY = -Math.abs(boBallDY);
-    // Angle based on hit position
-    const hitPos = (boBallX - (boPaddleX + boPaddleW/2)) / (boPaddleW/2);
-    boBallDX = hitPos * 4.5;
-    boBallY = paddleY - boBallR - 1;
-  }
-  // Ball lost
-  if (boBallY - boBallR > BO_H) {
-    boLives--;
-    document.getElementById('bo-lives').textContent = boLives;
-    if (boLives <= 0) {
-      boGameOver = true; boRunning = false;
-      if (boAnimId) { cancelAnimationFrame(boAnimId); boAnimId = null; }
-      document.getElementById('bo-status').textContent = '💀 ゲームオーバー！';
-      document.getElementById('bo-start-btn').textContent = '🔄 もう一度';
-      if (boScore > boBest) { boBest = boScore; localStorage.setItem('bo-best', boBest); document.getElementById('bo-best').textContent = boBest; }
-      return;
-    }
-    boBallX = BO_W/2; boBallY = BO_H - 50;
-    boBallDX = (Math.random() > 0.5 ? 1 : -1) * 3.2; boBallDY = -3.5;
-  }
-  // Brick collision
-  for (const brick of boBricks) {
-    if (!brick.alive) continue;
-    if (boBallX + boBallR > brick.x && boBallX - boBallR < brick.x + BO_BRICK_W &&
-        boBallY + boBallR > brick.y && boBallY - boBallR < brick.y + BO_BRICK_H) {
-      brick.alive = false;
-      boScore += (BO_BRICK_ROWS - brick.row) * 10;
-      document.getElementById('bo-score').textContent = boScore;
-      // Determine bounce axis
-      const overlapL = boBallX + boBallR - brick.x;
-      const overlapR = brick.x + BO_BRICK_W - (boBallX - boBallR);
-      const overlapT = boBallY + boBallR - brick.y;
-      const overlapB = brick.y + BO_BRICK_H - (boBallY - boBallR);
-      const minOverlap = Math.min(overlapL, overlapR, overlapT, overlapB);
-      if (minOverlap === overlapT || minOverlap === overlapB) boBallDY = -boBallDY;
-      else boBallDX = -boBallDX;
-      break;
-    }
-  }
-  // Win
-  if (boBricks.every(b => !b.alive)) {
-    boWon = true; boRunning = false;
-    if (boAnimId) { cancelAnimationFrame(boAnimId); boAnimId = null; }
-    document.getElementById('bo-status').textContent = '🎉 クリア！全ブロック破壊！';
-    document.getElementById('bo-start-btn').textContent = '🔄 もう一度';
-    if (boScore > boBest) { boBest = boScore; localStorage.setItem('bo-best', boBest); document.getElementById('bo-best').textContent = boBest; }
-  }
-  // Mouse-track paddle
-  boPaddleX = Math.max(0, Math.min(BO_W - boPaddleW, boMouseX - boPaddleW/2));
-}
-
-function boDraw() {
-  const canvas = document.getElementById('breakout-canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#080820';
-  ctx.fillRect(0, 0, BO_W, BO_H);
-  // Bricks
-  for (const brick of boBricks) {
-    if (!brick.alive) continue;
-    const color = BO_BRICK_COLORS[brick.row];
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(brick.x, brick.y, BO_BRICK_W, BO_BRICK_H, 3);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(brick.x+2, brick.y+2, BO_BRICK_W-4, 3);
-  }
-  // Paddle
-  const paddleY = BO_H - 20;
-  const grad = ctx.createLinearGradient(boPaddleX, paddleY, boPaddleX+boPaddleW, paddleY);
-  grad.addColorStop(0, '#b44fff'); grad.addColorStop(1, '#00d4ff');
-  ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.roundRect(boPaddleX, paddleY, boPaddleW, BO_PADDLE_H, 5); ctx.fill();
-  // Ball
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = '#b44fff'; ctx.shadowBlur = 12;
-  ctx.beginPath(); ctx.arc(boBallX, boBallY, boBallR, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-}
-
-// Mouse control
-document.getElementById('breakout-canvas')?.addEventListener('mousemove', e => {
-  const rect = document.getElementById('breakout-canvas').getBoundingClientRect();
-  const scaleX = BO_W / rect.width;
-  boMouseX = (e.clientX - rect.left) * scaleX;
-});
-// Touch control
-document.getElementById('breakout-canvas')?.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const rect = document.getElementById('breakout-canvas').getBoundingClientRect();
-  const scaleX = BO_W / rect.width;
-  boMouseX = (e.touches[0].clientX - rect.left) * scaleX;
-}, {passive: false});
-
-function boSliderMove(val) {
-  boMouseX = (val / 100) * BO_W;
-}
-/* =============================================
-   GAME 10: SUDOKU
-   ============================================= */
-let sdkPuzzle, sdkSolution, sdkSelected, sdkMistakes;
-let sdkTimerInterval, sdkTimeElapsed, sdkGiven;
-
-// --- Sudoku generator ---
-function sdkSolve(board) {
-  const empty = [];
-  for (let r = 0; r < 9; r++)
-    for (let c = 0; c < 9; c++)
-      if (!board[r][c]) empty.push([r, c]);
-  function bt(idx) {
-    if (idx === empty.length) return true;
-    const [r, c] = empty[idx];
-    const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random()-0.5);
-    for (const n of nums) {
-      if (sdkValid(board, r, c, n)) {
-        board[r][c] = n;
-        if (bt(idx + 1)) return true;
-        board[r][c] = 0;
-      }
-    }
-    return false;
-  }
-  return bt(0);
-}
-
-function sdkValid(board, row, col, num) {
-  for (let i = 0; i < 9; i++) {
-    if (board[row][i] === num) return false;
-    if (board[i][col] === num) return false;
-  }
-  const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
-  for (let r = br; r < br+3; r++)
-    for (let c = bc; c < bc+3; c++)
-      if (board[r][c] === num) return false;
-  return true;
-}
-
-function sdkGenerate(difficulty) {
-  // Start with full solved board
-  const board = Array.from({length:9}, () => Array(9).fill(0));
-  sdkSolve(board);
-  const solution = board.map(r => [...r]);
-
-  // Remove cells based on difficulty
-  const remove = difficulty === 'hard' ? 55 : 45;
-  const puzzle = solution.map(r => [...r]);
-  let removed = 0;
-  const positions = [];
-  for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) positions.push([r,c]);
-  positions.sort(() => Math.random()-0.5);
-  for (const [r,c] of positions) {
-    if (removed >= remove) break;
-    const backup = puzzle[r][c];
-    puzzle[r][c] = 0;
-    // Verify unique solution with a quick solve attempt
-    const test = puzzle.map(row => [...row]);
-    if (sdkCountSolutions(test) === 1) removed++;
-    else puzzle[r][c] = backup;
-  }
-  return { puzzle, solution };
-}
-
-function sdkCountSolutions(board) {
-  let count = 0;
-  function bt(r, c) {
-    if (count > 1) return;
-    if (r === 9) { count++; return; }
-    const nr = c === 8 ? r+1 : r, nc = c === 8 ? 0 : c+1;
-    if (board[r][c] !== 0) { bt(nr, nc); return; }
-    for (let n = 1; n <= 9; n++) {
-      if (sdkValid(board, r, c, n)) {
-        board[r][c] = n;
-        bt(nr, nc);
-        board[r][c] = 0;
-      }
-    }
-  }
-  bt(0, 0);
-  return count;
-}
-
-function sdkInit() {
-  sdkNewGame('normal');
-}
-
-function sdkNewGame(difficulty) {
-  if (sdkTimerInterval) { clearInterval(sdkTimerInterval); sdkTimerInterval = null; }
-  document.getElementById('sdk-difficulty').textContent = difficulty === 'hard' ? '難しい' : '普通';
-  document.getElementById('sdk-status').textContent = '数字を入力してください';
-  sdkTimeElapsed = 0;
-  sdkMistakes = 0;
-  sdkSelected = null;
-  document.getElementById('sdk-time').textContent = '0:00';
-  document.getElementById('sdk-mistakes').textContent = 0;
-
-  const gen = sdkGenerate(difficulty);
-  sdkPuzzle = gen.puzzle.map(r => [...r]);
-  sdkSolution = gen.solution;
-  sdkGiven = gen.puzzle.map(r => r.map(v => v !== 0));
-
-  sdkTimerInterval = setInterval(() => {
-    sdkTimeElapsed++;
-    const m = Math.floor(sdkTimeElapsed/60), s = sdkTimeElapsed%60;
-    document.getElementById('sdk-time').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  }, 1000);
-
-  sdkRender();
-}
-
-function sdkRender() {
-  const board = document.getElementById('sdk-board');
-  board.innerHTML = '';
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'sdk-cell';
-      const v = sdkPuzzle[r][c];
-
-      if (sdkGiven[r][c]) {
-        cell.classList.add('given');
-        cell.textContent = v;
-      } else {
-        cell.textContent = v || '';
-        cell.tabIndex = 0;
-        // Error check
-        if (v && v !== sdkSolution[r][c]) cell.classList.add('error');
-        // Highlight same number
-        if (sdkSelected && v && sdkPuzzle[sdkSelected[0]][sdkSelected[1]] === v)
-          cell.classList.add('highlight');
-      }
-
-      // Selected state
-      if (sdkSelected && sdkSelected[0] === r && sdkSelected[1] === c)
-        cell.classList.add('selected');
-      // Same row/col/box highlight
-      else if (sdkSelected) {
-        const [sr, sc] = sdkSelected;
-        if (r===sr || c===sc || (Math.floor(r/3)===Math.floor(sr/3) && Math.floor(c/3)===Math.floor(sc/3)))
-          cell.classList.add('highlight');
-      }
-
-      // Thick box borders
-      if (c === 2 || c === 5) cell.classList.add('box-right');
-      if (r === 2 || r === 5) cell.classList.add('box-bottom');
-
-      cell.addEventListener('click', () => {
-        if (!sdkGiven[r][c]) { sdkSelected = [r,c]; sdkRender(); }
-        else { sdkSelected = null; sdkRender(); }
-      });
-      board.appendChild(cell);
-    }
-  }
-}
-
-function sdkInput(num) {
-  if (!sdkSelected) return;
-  const [r,c] = sdkSelected;
-  if (sdkGiven[r][c]) return;
-  if (num === 0) {
-    sdkPuzzle[r][c] = 0;
-  } else {
-    sdkPuzzle[r][c] = num;
-    if (num !== sdkSolution[r][c]) {
-      sdkMistakes++;
-      document.getElementById('sdk-mistakes').textContent = sdkMistakes;
-    }
-  }
-  sdkRender();
-  // Check win
-  const complete = sdkPuzzle.every((row,ri) => row.every((v,ci) => v === sdkSolution[ri][ci]));
-  if (complete) {
-    clearInterval(sdkTimerInterval); sdkTimerInterval = null;
-    document.getElementById('sdk-status').textContent = `🎉 完成！ミス: ${sdkMistakes}回`;
-    sdkSelected = null; sdkRender();
-  }
-}
-
-// Keyboard input for sudoku
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('game-sudoku').classList.contains('active')) return;
-  if (!sdkSelected) return;
-  const [r,c] = sdkSelected;
-  if (e.key >= '1' && e.key <= '9') { sdkInput(parseInt(e.key)); }
-  else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { sdkInput(0); }
-  else if (e.key === 'ArrowRight') { sdkSelected = [r, Math.min(8,c+1)]; sdkRender(); }
-  else if (e.key === 'ArrowLeft')  { sdkSelected = [r, Math.max(0,c-1)]; sdkRender(); }
-  else if (e.key === 'ArrowDown')  { sdkSelected = [Math.min(8,r+1), c]; sdkRender(); }
-  else if (e.key === 'ArrowUp')    { sdkSelected = [Math.max(0,r-1), c]; sdkRender(); }
-});
-
-/* =============================================
-   FINAL WIRING & CANVAS SIZE FIX
-   ============================================= */
-
-// CanvasRenderingContext2D.roundRect polyfill for older browsers
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    r = Math.min(r, w/2, h/2);
-    this.beginPath();
-    this.moveTo(x+r, y);
-    this.lineTo(x+w-r, y); this.arcTo(x+w, y, x+w, y+r, r);
-    this.lineTo(x+w, y+h-r); this.arcTo(x+w, y+h, x+w-r, y+h, r);
-    this.lineTo(x+r, y+h); this.arcTo(x, y+h, x, y+h-r, r);
-    this.lineTo(x, y+r); this.arcTo(x, y, x+r, y, r);
-    this.closePath();
-    return this;
+    inp.value='';
+    const c=qs('#night-chat');
+    if(c){c.innerHTML=chatHtml();scrollEl('night-chat');}
+  };
+  window._pg=()=>{
+    if(p.role==='wolf'&&selKill!==null) G.actions.kill=selKill;
+    next();
   };
 }
 
-// Fix canvas sizes and attach event listeners
-(function fixCanvasSizes() {
-  document.addEventListener('DOMContentLoaded', () => {
-    const tetC = document.getElementById('tetris-canvas');
-    if (tetC) { tetC.width = TET_COLS * TET_CELL; tetC.height = TET_ROWS * TET_CELL; }
+function genBotNightChat(bot,other){
+  const tgt=G.actions.kill!==null?G.players[G.actions.kill]:null;
+  const lines=[
+    tgt?`今夜は ${tgt.name} さんを消そう。昼は疑いを向けないようにして。`:'作戦を立てよう。占い師を警戒して。',
+    `${other.name} さん、昼はうまく市民を誘導して。`,
+    '了解。自然に振る舞うよ。昼は積極的に発言しよう。',
+    '投票は流れに乗って。絶対に同士を売らないで。',
+    '占い師が誰かを特定しないといけない。',
+  ];
+  return rand(lines);
+}
 
-    const snakeC = document.getElementById('snake-canvas');
-    if (snakeC) { snakeC.width = SNAKE_GRID * SNAKE_CELL; snakeC.height = SNAKE_GRID * SNAKE_CELL; }
+function renderPickTarget(title,targets,label,colorClass,cb,extraHtml=''){
+  let sel=null;
+  R(`<div class="screen night-screen">
+    <h2 style="margin-bottom:12px">${title}</h2>
+    ${extraHtml}
+    <div class="player-list" id="pick-list">
+      ${targets.map(t=>`<div class="player-item ${colorClass==='vio'?'vio-sel':''}" data-id="${t.id}" onclick="pickSelFn(${t.id},this)">
+        <div class="player-avatar">${AVATARS[t.id%10]}</div>
+        <span class="player-name">${e(t.name)}</span>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-${colorClass}" id="pick-ok" disabled>${label}</button>
+  </div>`);
+  window.pickSelFn=(id,el)=>{
+    sel=id;
+    qsa('#pick-list .player-item').forEach(x=>x.classList.toggle('on',x===el));
+    qs('#pick-ok').disabled=false;
+  };
+  qs('#pick-ok').onclick=()=>cb(sel);
+}
 
-    // Attach breakout mouse/touch listener after DOM ready
-    const boC = document.getElementById('breakout-canvas');
-    if (boC) {
-      boC.addEventListener('mousemove', e => {
-        const rect = boC.getBoundingClientRect();
-        boMouseX = (e.clientX - rect.left) * (BO_W / rect.width);
-      });
-      boC.addEventListener('touchmove', e => {
-        e.preventDefault();
-        const rect = boC.getBoundingClientRect();
-        boMouseX = (e.touches[0].clientX - rect.left) * (BO_W / rect.width);
-      }, { passive: false });
+/* ============================================================
+   RESOLVE NIGHT
+   ============================================================ */
+function resolveNight(){
+  const k=G.actions.kill;
+  let msg='昨夜は誰も襲撃されませんでした。平和な朝です。';
+  if(k!==null&&k!==G.actions.protect){
+    G.players[k].alive=false;
+    msg=`昨夜、${G.players[k].name} さんが無残にも倒れていました…`;
+  }
+  const w=checkWinner();
+  if(w) return showResult(w,msg);
+  dayPhase(msg);
+}
+
+/* ============================================================
+   DAY PHASE
+   ─ タイマー残り表示のみ（自動終了しない）
+   ─ 全員の「完了」ボタンで進行
+   ─ 半数以上「延長」で+2分
+   ============================================================ */
+function dayPhase(nightMsg){
+  clearTimers();
+  G.day++;
+  G.dayLog=[];
+  G.doneSet=new Set();
+  G.extVotes={yes:0,no:0,asked:false};
+
+  const humanAlive=G.players.filter(p=>!p.bot&&p.alive);
+  const humanCount=humanAlive.length;
+  const botPool   =alive().filter(p=>p.bot);
+  const mePlayer  =G.soloMode ? G.players.find(p=>!p.bot&&p.alive) : null;
+  const totalSec  =120;
+  let elapsed=0;
+
+  const msgHtml=m=>`<div class="msg${m.isMe?' me':''}"><small>${e(m.from)}</small>${e(m.text)}</div>`;
+
+  const updateDoneUI=()=>{
+    const el=qs('#done-count'); if(!el)return;
+    el.innerHTML=`<b>${G.doneSet.size}</b> / ${humanCount} 人が完了`;
+    const btn=qs('#done-btn');
+    if(btn){
+      const alreadyDone=mePlayer&&G.doneSet.has(mePlayer.id);
+      btn.textContent=alreadyDone?'✓ 完了済み':'✅ 話し合い完了';
+      btn.disabled=alreadyDone;
+      if(alreadyDone) btn.style.background='var(--line)';
+    }
+    if(G.doneSet.size>=humanCount&&humanCount>0&&!G.extVotes.asked){
+      askExtension();
+    }
+  };
+
+  const r22=2*Math.PI*22;
+  function buildScreen(){
+    return `<div class="screen">
+      <div class="day-header">
+        <span class="day-badge">☀️ ${G.day}日目</span>
+        <div class="timer-ring" style="margin-left:auto">
+          <svg width="54" height="54" viewBox="0 0 54 54">
+            <circle class="tr-bg" cx="27" cy="27" r="22"/>
+            <circle class="tr-arc" id="tr-arc" cx="27" cy="27" r="22"
+              stroke-dasharray="${r22}" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-text" id="timer-txt">2:00</div>
+        </div>
+      </div>
+
+      <div class="card red" style="margin-bottom:10px">
+        <div style="font-weight:600;font-size:.94rem">${e(nightMsg)}</div>
+      </div>
+
+      <p class="sec-label">生存者</p>
+      <div class="alive-chips">
+        ${alive().map(p=>`<div class="chip">${e(p.name)}</div>`).join('')}
+      </div>
+
+      <p class="sec-label">議論ログ</p>
+      <div class="card" style="padding:10px 12px">
+        <div class="log-box" id="day-log">
+          <div id="empty-log" class="msg sys"><small>システム</small>議論が始まります…</div>
+        </div>
+      </div>
+
+      ${G.soloMode?`
+      <div class="send-row" style="margin-top:8px">
+        <input id="day-inp" maxlength="80" placeholder="あなたの発言…"
+          onkeydown="if(event.key==='Enter'&&!event.isComposing)sendDayMsg()">
+        <button onclick="sendDayMsg()">発言</button>
+      </div>`:''}
+
+      <div class="done-btn-wrap">
+        <div class="done-count" id="done-count">
+          <b>0</b> / ${humanCount} 人が完了
+        </div>
+        ${G.soloMode||humanCount>0?`<button class="btn btn-ok" id="done-btn" onclick="pressDone()">✅ 話し合い完了</button>`:''}
+        <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="votePhase()">⏭️ スキップして投票へ</button>
+      </div>
+    </div>`;
+  }
+
+  R(buildScreen());
+
+  // タイマー（表示のみ、自動終了しない）
+  const tickTimer=()=>{
+    const arc=qs('#tr-arc'),txt=qs('#timer-txt');
+    if(!arc||!txt)return;
+    const ratio=Math.max(0,(totalSec-elapsed)/totalSec);
+    arc.style.strokeDashoffset=r22*(1-ratio);
+    if(elapsed>=totalSec){arc.classList.add('low');txt.classList.add('low');}
+    txt.textContent=`${Math.floor(elapsed/60)}:${pad(elapsed%60)}`;
+    elapsed++;
+  };
+  tickTimer();
+  G.timers.iv=setInterval(tickTimer,1000);
+
+  // ソロモードのBot発言スケジューリング
+  if(G.soloMode&&botPool.length) scheduleBotTalk(botPool);
+
+  // 完了ボタン押下（ソロ専用 or 手渡し）
+  window.pressDone=()=>{
+    if(!mePlayer&&!G.soloMode){
+      // 手渡しモード: ホストが代表で押す想定
+      G.doneSet.add(-1);
+    } else if(mePlayer){
+      G.doneSet.add(mePlayer.id);
+    }
+    updateDoneUI();
+    toast('✅ 完了ボタンを押しました');
+  };
+
+  window.sendDayMsg=()=>{
+    const inp=qs('#day-inp');
+    const v=inp?.value.trim(); if(!v)return;
+    const m={from:mePlayer?.name||'あなた',isMe:true,bot:false,text:v};
+    G.dayLog.push(m);
+    const log=qs('#day-log');
+    if(log){
+      qs('#empty-log')?.remove();
+      log.insertAdjacentHTML('beforeend',msgHtml(m));
+      log.scrollTop=log.scrollHeight;
+    }
+    inp.value='';
+    // Botが1〜2秒後に反応
+    triggerBotReaction(m,botPool);
+  };
+
+  updateDoneUI();
+}
+
+function scheduleBotTalk(botPool){
+  if(!G?.timers)return;
+  // Bot発言間隔: 3〜7秒（落ち着いた速度）
+  const delay=3000+Math.random()*4000;
+  const tid=setTimeout(()=>{
+    const logEl=qs('#day-log');
+    if(!logEl||!G?.soloMode)return;
+    const bot=rand(botPool.filter(b=>b.alive));
+    if(!bot){scheduleBotTalk(botPool);return;}
+    const line=genBotDayLine(bot,G.night,G.day);
+    if(!line){scheduleBotTalk(botPool);return;}
+    const m={from:bot.name,bot:true,isMe:false,text:line};
+    G.dayLog.push(m);
+    qs('#empty-log')?.remove();
+    logEl.insertAdjacentHTML('beforeend',`<div class="msg"><small>${e(m.from)}</small>${e(m.text)}</div>`);
+    logEl.scrollTop=logEl.scrollHeight;
+    scheduleBotTalk(botPool);
+  },delay);
+  G.timers.bots.push(tid);
+}
+
+function triggerBotReaction(playerMsg,botPool){
+  if(!botPool?.length)return;
+  const bot=rand(botPool.filter(b=>b.alive));
+  if(!bot)return;
+  const delay=1200+Math.random()*2200;
+  const tid=setTimeout(()=>{
+    const log=qs('#day-log');
+    if(!log)return;
+    const reactions=[
+      `${e(playerMsg.from)} さんの意見、参考になります。私も同意します。`,
+      `${e(playerMsg.from)} さん、それは重要な情報ですね。`,
+      `でも ${e(playerMsg.from)} さん、本当にそれで大丈夫ですか？`,
+      `${e(playerMsg.from)} さんに同意。今日はそこを追及すべきです。`,
+      `${e(playerMsg.from)} さんが積極的なのが少し気になります…`,
+    ];
+    const m={from:bot.name,bot:true,isMe:false,text:rand(reactions)};
+    G.dayLog.push(m);
+    log.insertAdjacentHTML('beforeend',`<div class="msg"><small>${e(m.from)}</small>${e(m.text)}</div>`);
+    log.scrollTop=log.scrollHeight;
+  },delay);
+  G.timers.bots.push(tid);
+}
+
+/* 延長確認 */
+function askExtension(){
+  G.extVotes.asked=true;
+  clearTimers(); // タイマー一時停止
+
+  const humanAlive=G.players.filter(p=>!p.bot&&p.alive);
+  const needed=Math.ceil(humanAlive.length/2);
+
+  // ソロモードは自動で確認
+  if(G.soloMode){
+    R(`<div class="screen">
+      <div class="center" style="min-height:60vh">
+        <div style="font-size:3rem">⏱️</div>
+        <h2 style="margin:12px 0">話し合いを延長しますか？</h2>
+        <p style="color:var(--dim);max-width:260px;margin-bottom:20px">+2分の延長が可能です。</p>
+        <button class="btn btn-ok" style="max-width:280px" onclick="extendDay()">✅ 延長する（+2分）</button>
+        <button class="btn btn-red" style="max-width:280px;margin-top:8px" onclick="votePhase()">🗳️ そのまま投票へ</button>
+      </div>
+    </div>`);
+    return;
+  }
+
+  // 手渡しモード: 各プレイヤーに確認
+  G.extVotes={yes:0,no:0,asked:true};
+  passDevice(humanAlive,0,'延長確認',(p,next)=>{
+    R(`<div class="screen">
+      <div class="center" style="min-height:55vh">
+        <span class="tag vio">延長確認</span>
+        <div style="font-size:1.4rem;font-weight:700;margin:14px 0">${e(p.name)} さん</div>
+        <p style="color:var(--dim);margin-bottom:20px">話し合いをもう2分延長しますか？<br><small>（半数以上が同意で延長）</small></p>
+        <button class="btn btn-ok" style="max-width:240px" onclick="extVote(true,window._extNext)">✅ 延長する</button>
+        <button class="btn btn-ghost" style="max-width:240px;margin-top:8px" onclick="extVote(false,window._extNext)">→ そのまま投票へ</button>
+      </div>
+    </div>`);
+    window._extNext=next;
+  },()=>{
+    const half=Math.ceil(humanAlive.length/2);
+    if(G.extVotes.yes>=half) extendDay();
+    else votePhase();
+  });
+}
+
+window.extVote=(yes,next)=>{
+  if(yes) G.extVotes.yes++;else G.extVotes.no++;
+  next();
+};
+function extendDay(){
+  toast('⏱️ +2分 延長します！',2000);
+  G.doneSet=new Set();
+  G.extVotes={yes:0,no:0,asked:false};
+  const nightMsg='（延長議論中）';
+  dayPhase(nightMsg);
+}
+
+/* ============================================================
+   強化AI Bot 発言ロジック
+   ============================================================ */
+function genBotDayLine(bot,night,dayNum){
+  const others=alive().filter(p=>p.id!==bot.id);
+  if(!others.length)return null;
+  const rnd=rand(others);
+  const seerBlack=G.seerResults.find(r=>r.result==='wolf'&&G.players[r.id]?.alive);
+  const mySeer=G.seerResults.find(r=>r.by===bot.name);
+  const suspects=getSuspected(bot);
+  const tgt=suspects.length?suspects[0]:rnd;
+
+  // 役職CO
+  if(!bot.coRole&&Math.random()<0.1){
+    if(bot.role==='seer'&&mySeer){
+      bot.coRole='seer';
+      return `実は私が本物の占い師です！${mySeer.night}日目夜に ${mySeer.name} さんを占いました。結果は【${mySeer.result==='wolf'?'🐺 人狼':'✓ 白（市民）'}】でした！`;
+    }
+    if(bot.role==='knight'&&Math.random()<0.35){
+      bot.coRole='knight';
+      return '騎士として名乗り出ます。毎晩誰かを守っています。信じてください！';
+    }
+  }
+
+  if(bot.role==='wolf'||bot.role==='spy'){
+    return rand([
+      `${e(tgt.name)} さん、昨夜から黙りがちですね。怪しくないですか？`,
+      `私は絶対に市民です！発言内容を見てもらえれば分かります。`,
+      `今日の投票は ${e(tgt.name)} さんに向けるべきだと思います。`,
+      `${e(rand(others).name)} さん、占い師ならCOしてください。`,
+      `情報出しが少ない人から追放すべきでは。`,
+      `私には ${e(tgt.name)} さんの行動が矛盾して見えます。`,
+    ]);
+  }
+
+  if(dayNum===1){
+    return rand([
+      `${e(rand(others).name)} さん、昨夜誰かを占いましたか？`,
+      `まず自己紹介しましょう。黙っている人が怪しいかも。`,
+      `占い師の方はいますか？情報を共有してほしいです。`,
+      `静かな ${e(tgt.name)} さんが少し気になります。`,
+      `私は市民です。人狼を見つけて村を守りましょう！`,
+    ]);
+  }
+
+  if(seerBlack&&Math.random()<0.35){
+    const acc=G.players[seerBlack.id];
+    if(acc?.alive) return `${e(acc.name)} さんが人狼だという情報があります。今日は ${e(acc.name)} さんに投票を集めましょう！`;
+  }
+
+  return rand([
+    `${e(tgt.name)} さんの発言が矛盾していると思います。説明してください。`,
+    `今日の投票は ${e(tgt.name)} さんに絞るべきです。`,
+    `昨夜の犠牲者を考えると、${e(tgt.name)} さんが怪しいです。`,
+    `もし今日失敗したら人狼に負けます。慎重に行きましょう。`,
+    `${e(rand(others).name)} さん、どこに投票しますか？`,
+    `人狼は ${night>=2?'残り少ない':'潜伏中の'}はずです。今日こそ仕留めましょう。`,
+  ]);
+}
+
+function getSuspected(bot){
+  const blacks=G.seerResults.filter(r=>r.result==='wolf').map(r=>r.id);
+  const s=alive().filter(p=>p.id!==bot.id&&blacks.includes(p.id));
+  return s.length?s:alive().filter(p=>p.id!==bot.id);
+}
+
+/* ============================================================
+   VOTE PHASE
+   ============================================================ */
+function votePhase(){
+  clearTimers();
+  G.votes={};
+  const humanAlive=G.players.filter(p=>!p.bot&&p.alive);
+  if(humanAlive.length===0){botVote();tally();return;}
+  passDevice(humanAlive,0,'追放投票',(p,next)=>{
+    const targets=alive().filter(x=>x.id!==p.id);
+    renderPickTarget(
+      `🗳️ ${e(p.name)} さん — 追放する人を選ぶ`,
+      targets,'投票する','red',
+      id=>{G.votes[p.id]=id;next();}
+    );
+  },()=>{botVote();tally();});
+}
+
+function botVote(){
+  alive().filter(p=>p.bot).forEach(b=>{
+    const targets=alive().filter(x=>x.id!==b.id);
+    if(!targets.length)return;
+    if(b.role==='wolf'||b.role==='spy'){
+      const ht=targets.filter(x=>!x.bot);
+      G.votes[b.id]=(ht.length?rand(ht):rand(targets)).id;
+    } else {
+      const br=G.seerResults.find(r=>r.result==='wolf'&&G.players[r.id]?.alive);
+      G.votes[b.id]=br?br.id:rand(targets).id;
     }
   });
-})();
+}
 
-/* =============================================
-   RESPONSIVE: re-render SVG on resize (Dots & Boxes)
-   ============================================= */
-let dnbResizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(dnbResizeTimer);
-  dnbResizeTimer = setTimeout(() => {
-    if (document.getElementById('game-dnb').classList.contains('active')) dnbRender();
-  }, 150);
-});
+function tally(){
+  const counts={};
+  Object.values(G.votes).forEach(v=>counts[v]=(counts[v]||0)+1);
+  const maxV=Math.max(0,...Object.values(counts));
+  const top=Object.keys(counts).filter(k=>counts[k]===maxV);
+  let resultMsg='同票のため、追放者なし。';
+  let exiled=null;
+  if(top.length===1){
+    exiled=G.players[+top[0]];
+    exiled.alive=false;
+    resultMsg=`${exiled.name} さんが村から追放されました。`;
+  }
+  const total=Object.values(G.votes).length;
+  const barHtml=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([id,cnt])=>{
+    const p=G.players[+id];
+    const pct=Math.round(cnt/total*100);
+    const col=p.id===exiled?.id?'var(--red)':'var(--vio)';
+    return `<div class="vote-row">
+      <span class="vote-name">${e(p.name)}</span>
+      <div class="vote-bar-wrap"><div class="vote-bar" style="width:${pct}%;background:${col}"></div></div>
+      <span class="vote-count">${cnt}票</span>
+    </div>`;
+  }).join('');
+  const w=checkWinner();
+  R(`<div class="screen">
+    <h2 style="margin-bottom:14px">🗳️ 投票結果</h2>
+    <div class="vote-result">${barHtml}</div>
+    <div class="card ${exiled?'red':'gold'}" style="margin-top:10px">
+      <div style="font-weight:700;font-size:.96rem">${e(resultMsg)}</div>
+      ${exiled?`<div style="font-size:.82rem;color:var(--dim);margin-top:3px">役職：${RI[exiled.role]} ${RN[exiled.role]}</div>`:''}
+    </div>
+    <button class="btn ${w?'btn-gold':'btn-vio'}" style="margin-top:18px" onclick="${w?`showResult('${w}','')` :'nightPhase()'}">
+      ${w?'結果を見る →':'夜へ進む →'}
+    </button>
+  </div>`);
+}
 
-/* =============================================
-   PREVENT SCROLL on arrow keys / space when game active
-   ============================================= */
-window.addEventListener('keydown', e => {
-  const gameActive = ['game-ttt','game-othello','game-c4','game-dnb','game-g2048',
-    'game-tetris','game-mine','game-snake','game-breakout','game-sudoku']
-    .some(id => document.getElementById(id)?.classList.contains('active'));
-  if (gameActive && [' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))
-    e.preventDefault();
-}, { passive: false });
+/* ============================================================
+   WINNER CHECK
+   ============================================================ */
+function checkWinner(){
+  const a=alive();
+  const wc=a.filter(p=>p.role==='wolf').length;
+  if(wc===0) return 'citizen';
+  if(wc>=a.length-wc) return 'wolf';
+  return null;
+}
 
+/* ============================================================
+   RESULT
+   ============================================================ */
+function showResult(winner,extraMsg=''){
+  clearTimers();
+  const isWin=winner==='citizen';
+  const rows=G.players.map(p=>
+    `<tr>
+      <td>${e(p.name)}${p.bot?' <span class="tag" style="font-size:.68rem">Bot</span>':''}</td>
+      <td>${RI[p.role]} ${RN[p.role]}</td>
+      <td>${p.alive?'<span class="tag ok">生存</span>':'<span class="tag red">死亡</span>'}</td>
+    </tr>`
+  ).join('');
+  R(`<div class="screen">
+    <div class="center" style="min-height:auto;padding:36px 0 16px">
+      <div class="big-emoji" style="font-size:5.5rem">${isWin?'☀️':'🌑'}</div>
+      <div class="result-big ${isWin?'win':'lose'}">${isWin?'市民陣営の勝利':'人狼陣営の勝利'}</div>
+      <p style="color:var(--dim);margin-top:4px;font-size:.9rem">${e(extraMsg||(isWin?'人狼が全滅しました！':'人狼が村を支配しました…'))}</p>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <h3 style="margin-bottom:10px;color:var(--moon)">全役職公開</h3>
+      <table class="ptable"><tbody>${rows}</tbody></table>
+    </div>
+    ${G.seerResults.length?`
+    <div class="card">
+      <h3 style="margin-bottom:8px;color:var(--moon)">🔮 占い結果まとめ</h3>
+      ${G.seerResults.map(r=>`<div class="row"><span>${e(r.name)}</span><span class="tag ${r.result==='wolf'?'red':'ok'}">${r.result==='wolf'?'🐺 人狼':'✓ 白'}</span></div>`).join('')}
+    </div>`:''}
+    <button class="btn btn-vio" style="margin-top:6px" onclick="home()">🏠 ホームに戻る</button>
+    <button class="btn btn-ghost" style="margin-top:6px" onclick="startGame()">🔄 もう一度（同じ設定）</button>
+  </div>`);
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function alive(all=false){
+  return all?G.players:G.players.filter(p=>p.alive);
+}
+function clearTimers(){
+  if(!G?.timers)return;
+  clearInterval(G.timers.iv);
+  clearTimeout(G.timers.to);
+  (G.timers.bots||[]).forEach(clearTimeout);
+  G.timers={iv:null,to:null,bots:[]};
+}
+function scrollEl(id){
+  const el=qs('#'+id);
+  if(el) el.scrollTop=el.scrollHeight;
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+home();
 </script>
 </body>
 </html>
