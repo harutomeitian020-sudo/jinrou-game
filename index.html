@@ -904,16 +904,19 @@ function roomStep3(){
       <div class="row" style="border:none"><span>役職</span><span style="font-size:.85rem">${roleLabel}</span></div>
     </div>
 
-    <button class="btn btn-red" style="margin-top:8px" onclick="startFromRoom()">🐺 ゲーム開始</button>
+    <button class="btn btn-red" style="margin-top:8px" onclick="startFromRoom('${code}')">🐺 ゲーム開始 → 待機所へ</button>
   </div>`);
 }
 
 function genCode(){ return String(Math.floor(10000+Math.random()*90000)); }
-function startFromRoom(){
+
+// ルーム作成後の「ゲーム開始」
+// code は roomStep3 で生成済みのものを渡す
+function startFromRoom(code){
   const t=S.humans+S.bots;
   if(t<4||t>8){toast('4〜8人で遊べます');return;}
   S.mode='room';
-  startGame();
+  startGame(true, code);
 }
 
 /* ============================================================
@@ -1100,7 +1103,7 @@ function buildRoles(total){
   return shuffle(roles).slice(0,total);
 }
 
-function startGame(){
+function startGame(viaLobby=false, roomCode=''){
   const total=S.humans+S.bots;
   if(total<4||total>8){toast('4〜8人で遊べます');return;}
   const roles=buildRoles(total);
@@ -1120,19 +1123,117 @@ function startGame(){
     votes:{},
     timers:{iv:null,to:null,bots:[]},
     soloMode: S.mode==='solo',
-    doneSet: new Set(),   // 昼の完了ボタン押した人
+    doneSet: new Set(),
     extVotes:{yes:0,no:0,asked:false},
+    _roomCode: roomCode,
   };
   const humanPlayers=G.players.filter(p=>!p.bot);
   if(humanPlayers.length===0){ nightPhase(); return; }
-  // 3人かつ人狼ゼロのケースを役職確認後に伝える
-  passDevice(humanPlayers,0,'役職確認',showRoleCard,()=>{
+
+  // ロビー経由（ルーム作成時）→ 待機所 → 全員同時に役職確認
+  if(viaLobby){
+    showLobby();
+    return;
+  }
+
+  // ソロモード → 役職確認（手渡し不要、自分1人）
+  showRoleRevealAll(()=>{
     if(G.players.length===3 && G.players.every(p=>p.role!=='wolf')){
       show3pNowolf();
     } else {
       nightPhase();
     }
   });
+}
+
+/* ============================================================
+   LOBBY — 待機所
+   ============================================================ */
+function showLobby(){
+  // localStorage からルームコードを取得（直近作成分）
+  const code = G._roomCode || '-----';
+
+  const humanPlayers = G.players.filter(p=>!p.bot);
+  const botPlayers   = G.players.filter(p=>p.bot);
+  const total        = G.players.length;
+
+  const playerRows = humanPlayers.map((p,i)=>`
+    <div class="waiting-item" style="animation:slideUp ${0.1+i*0.08}s ease both">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);flex-shrink:0"></div>
+      <div style="font-weight:600">${e(p.name)}</div>
+      <div class="tag ok" style="margin-left:auto">参加済み</div>
+    </div>`).join('');
+
+  const botRows = botPlayers.map((p,i)=>`
+    <div class="waiting-item" style="opacity:.5;animation:slideUp ${0.1+(humanPlayers.length+i)*0.08}s ease both">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--dim);flex-shrink:0"></div>
+      <div style="font-weight:600">${e(p.name)}</div>
+      <div class="tag" style="margin-left:auto">🤖 Bot</div>
+    </div>`).join('');
+
+  const isOnline = S.roomType === 'online';
+  const baseUrl  = location.href.split('?')[0];
+  const roomUrl  = `${baseUrl}?room=${code}`;
+  const qrUrl    = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(roomUrl)}&size=160x160&bgcolor=ffffff&color=000000&qzone=2`;
+
+  R(`<div class="screen">
+    <!-- ルームコード 最上部に大きく表示 -->
+    <div style="text-align:center;padding:20px 0 12px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.18em;color:var(--dim2);text-transform:uppercase;margin-bottom:8px">ルームコード</div>
+      <div class="room-code-big" onclick="copyText('${code}')" style="font-size:3.6rem;letter-spacing:.35em;cursor:pointer">${code}</div>
+      <div style="font-size:.8rem;color:var(--dim);margin-top:6px">タップでコピー</div>
+    </div>
+
+    ${isOnline ? `
+    <div class="qr-wrap" style="padding:12px;margin-bottom:8px">
+      <img src="${e(qrUrl)}" width="160" height="160" alt="QR" loading="lazy">
+      <div style="font-size:.75rem;color:var(--dim);text-align:center;word-break:break-all;max-width:280px">${e(roomUrl)}</div>
+    </div>` : ''}
+
+    <div class="divider"></div>
+
+    <!-- 参加者リスト -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <p class="sec-label" style="margin:0">参加者</p>
+      <span style="font-size:.82rem;color:var(--dim)">${humanPlayers.length}人 + Bot ${botPlayers.length}人 ／ 計 ${total}人</span>
+    </div>
+    <div style="display:grid;gap:6px;margin-bottom:12px">
+      ${playerRows}
+      ${botRows}
+    </div>
+
+    <div class="card gold" style="margin-bottom:12px">
+      <p style="font-size:.88rem;color:var(--gold2);margin:0">
+        ✅ 全員がそろったら「役職を配布する」を押してください。<br>
+        <span style="color:var(--dim)">全員が同じタイミングで役職カードを確認します。</span>
+      </p>
+    </div>
+
+    <button class="btn btn-red" onclick="showRoleRevealAll(()=>{
+      if(G.players.length===3&&G.players.every(p=>p.role!=='wolf')){show3pNowolf();}
+      else{nightPhase();}
+    })">🃏 役職を配布する</button>
+    <button class="btn btn-ghost" style="margin-top:6px" onclick="home()">← ホームに戻る</button>
+  </div>`);
+}
+
+/* ============================================================
+   全員同時 役職カード確認
+   ─ 人間プレイヤーを1人ずつカード表示（タップで次へ）
+   ─ 最後のプレイヤーが確認したらコールバックへ
+   ============================================================ */
+function showRoleRevealAll(done){
+  const humanPlayers = G.players.filter(p=>!p.bot);
+  if(humanPlayers.length===0){ done(); return; }
+
+  // ソロモードは自分1人だけ確認
+  if(G.soloMode){
+    showRoleCard(humanPlayers[0], done);
+    return;
+  }
+
+  // 複数人: 「〇〇さんの番です」→ カード表示 → タップで次へ（手渡し方式）
+  passDevice(humanPlayers, 0, '役職確認', showRoleCard, done);
 }
 
 /* ============================================================
